@@ -108,7 +108,7 @@ export default function AddPenalty({
       (penalty) => penalty.value.toLowerCase() === value
     );
     setSelectedPenalty(penalty || null);
-    penalty && setAmountInput((penalty.currencyPointsValue ?? 0).toString());
+    // penalty && setAmountInput((penalty.currencyPointsValue ?? 0).toString());
     setOpen(false);
   };
 
@@ -279,24 +279,31 @@ export default function AddPenalty({
           <div className="md:col-span-2">
             <div className="flex items-center w-full">
               <Label className="md:w-full">
-                {selectedPenalty && selectedPenalty?.comparative
+                {selectedPenalty.doubleTax
+                  ? `Enter Amount (will be doubled)`
+                  : selectedPenalty.comparative
                   ? "Enter comparative amount"
                   : "Enter Amount"}
               </Label>
               <Input
                 type="number"
-                value={amountInput}
+                value={
+                  selectedPenalty.fixedAmount
+                    ? selectedPenalty.fixedAmount.toString()
+                    : amountInput
+                }
                 onChange={(e) => setAmountInput(e.target.value)}
                 placeholder={
-                  selectedPenalty && selectedPenalty?.comparative
+                  selectedPenalty.comparative
                     ? "Enter comparative amount"
                     : "Max Amount"
                 }
                 min={0}
+                disabled={!!selectedPenalty.fixedAmount}
                 max={
-                  selectedPenalty && selectedPenalty.comparative
+                  selectedPenalty.comparative
                     ? undefined
-                    : selectedPenalty?.currencyPointsValue
+                    : selectedPenalty.currencyPointsValue
                 }
               />
             </div>

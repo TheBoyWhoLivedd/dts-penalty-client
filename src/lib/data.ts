@@ -31,8 +31,6 @@ export const penalties = [
     comparative: false,
     fixed: false,
     category: "General",
-    currencyPoints: 10,
-    currencyPointsValue: 250000,
     doubleTax: true,
   },
   {

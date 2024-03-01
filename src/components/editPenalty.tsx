@@ -329,31 +329,40 @@ export default function PenaltyItem({
           </div>
           {selectedPenalty?.requiresCustomInputs && renderCustomInputs()}
           {selectedPenalty && !selectedPenalty.requiresCustomInputs && (
-            <div className="md:col-span-3 flex items-center justify-between pt-2">
-              <div className="flex items-center w-full">
-                <Label className="md:w-full">
-                  {selectedPenalty && selectedPenalty?.comparative
-                    ? "Enter comparative amount"
-                    : "Enter Amount"}
-                </Label>
-                <Input
-                  type="number"
-                  value={amountInput}
-                  onChange={(e) => setAmountInput(e.target.value)}
-                  placeholder={
-                    selectedPenalty && selectedPenalty?.comparative
+            <>
+              <div className="md:col-span-2">
+                <div className="flex items-center w-full">
+                  <Label className="md:w-full">
+                    {selectedPenalty.doubleTax
+                      ? `Enter Amount (will be doubled)`
+                      : selectedPenalty.comparative
                       ? "Enter comparative amount"
-                      : "Max Amount"
-                  }
-                  min={0}
-                  max={
-                    selectedPenalty && selectedPenalty.comparative
-                      ? undefined
-                      : selectedPenalty?.currencyPointsValue
-                  }
-                />
+                      : "Enter Amount"}
+                  </Label>
+                  <Input
+                    type="number"
+                    value={
+                      selectedPenalty.fixedAmount
+                        ? selectedPenalty.fixedAmount.toString()
+                        : amountInput
+                    }
+                    onChange={(e) => setAmountInput(e.target.value)}
+                    placeholder={
+                      selectedPenalty.comparative
+                        ? "Enter comparative amount"
+                        : "Max Amount"
+                    }
+                    min={0}
+                    disabled={!!selectedPenalty.fixedAmount}
+                    max={
+                      selectedPenalty.comparative
+                        ? undefined
+                        : selectedPenalty.currencyPointsValue
+                    }
+                  />
+                </div>
               </div>
-            </div>
+            </>
           )}
           {selectedPenalty && (
             <div className="md:col-span-1 flex items-center justify-center">

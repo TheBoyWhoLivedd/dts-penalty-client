@@ -16,6 +16,7 @@ import { Input } from "./ui/input";
 import AddPenalty from "./addPenalty";
 import PenaltyItem from "./editPenalty";
 import { useState } from "react";
+import { Textarea } from "./ui/textarea";
 
 export type FormValues = {
   [key: string]: string;
@@ -50,6 +51,14 @@ const FormSchema = z.object({
     }),
   name: z.string().min(1, "Taxpayer name is required."),
   penalties: z.array(PenaltySchema),
+  description: z
+    .string()
+    .min(10, {
+      message: "Description must be at least 10 characters.",
+    })
+    .refine((value) => (value.match(/\S+/g) || []).length >= 8, {
+      message: "Description must contain at least 8 words.",
+    }),
 });
 
 export const PenaltyForm = () => {
@@ -191,7 +200,31 @@ export const PenaltyForm = () => {
           formValues={formValues}
           handleCustomInputChange={handleCustomInputChange}
         />
-        <Button type="submit">Submit</Button>
+        <Heading title="Penalty Description" />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              {/* <FormLabel>Penalty Description</FormLabel> */}
+              <FormControl>
+                <Textarea
+                  placeholder="Describe Penalties Imposed"
+                  className=" mt-2"
+                  {...field}
+                />
+              </FormControl>
+              {/* <FormDescription>
+                You can <span>@mention</span> other users and organizations.
+              </FormDescription> */}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button className="mt-2" type="submit">
+          Submit
+        </Button>
       </form>
     </Form>
   );
