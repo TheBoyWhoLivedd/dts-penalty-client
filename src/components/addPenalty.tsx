@@ -19,22 +19,77 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  // SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormValues, ParsedInputs } from "./penaltyForm";
 
 export default function AddPenalty({
   onAdd,
+  formValues,
+  handleCustomInputChange,
 }: {
   onAdd: (penalty: Penalty & { finalAmount: number }) => void;
+  formValues: FormValues;
+  handleCustomInputChange: (variable: string, value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedPenalty, setSelectedPenalty] = useState<Penalty | null>(null);
   const [amountInput, setAmountInput] = useState<string>("");
-  const [daysInput, setDaysInput] = useState("");
+
+  // Dynamically generate form inputs for custom penalty inputs
+  const renderCustomInputs = () => {
+    return selectedPenalty?.inputs?.map((input) => {
+      switch (input.type) {
+        case "number":
+          return (
+            <div className="md:col-span-3 flex items-center justify-between pt-2">
+              <div className="flex items-center w-full">
+                <Label className="md:w-full">{input.label}</Label>
+                <Input
+                  key={input.variable}
+                  type="number"
+                  value={formValues[input.variable] || ""}
+                  onChange={(e) =>
+                    handleCustomInputChange(input.variable, e.target.value)
+                  }
+                  placeholder={input.label}
+                />
+              </div>
+            </div>
+          );
+        case "select":
+          return (
+            <Select
+              key={input.variable}
+              value={formValues[input.variable] || ""}
+              onValueChange={(value) =>
+                handleCustomInputChange(input.variable, value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={input.label} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {input.options &&
+                    input.options.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          );
+        default:
+          return null;
+      }
+    });
+  };
+
   // Extract unique categories
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(
@@ -53,16 +108,38 @@ export default function AddPenalty({
       (penalty) => penalty.value.toLowerCase() === value
     );
     setSelectedPenalty(penalty || null);
-    // Reset amount input based on penalty's conditions
-    if (penalty) {
-      if (penalty.dailyFine) {
-        setAmountInput(""); // Reset as we will calculate based on daysInput
-        setDaysInput(""); // Prepare to input the number of default days
-      } else {
-        setAmountInput((penalty.maxAmount ?? 0).toString());
-      }
-    }
+    penalty && setAmountInput((penalty.currencyPointsValue ?? 0).toString());
     setOpen(false);
+  };
+
+  const executeCalculationMethod = (
+    methodString: string,
+    inputs: FormValues
+  ) => {
+    try {
+      // Convert inputs to the correct types
+      const parsedInputs = Object.keys(inputs).reduce<ParsedInputs>(
+        (acc, key) => {
+          acc[key] = isNaN(Number(inputs[key]))
+            ? inputs[key]
+            : parseFloat(inputs[key]);
+          return acc;
+        },
+        {}
+      );
+
+      // Define a function from the methodString
+      // cringe, I know. (temporary solution)
+      const fn = new Function("inputs", `return (${methodString});`);
+
+      // Execute the function with parsed inputs
+      const result = fn()(parsedInputs);
+
+      return result;
+    } catch (error) {
+      console.error("Error executing calculation method:", error);
+      return null;
+    }
   };
 
   const calculateFinalAmount = () => {
@@ -70,20 +147,36 @@ export default function AddPenalty({
 
     let finalAmount = parseFloat(amountInput) || 0;
 
-    // Handle daily fine separately
-    if (selectedPenalty.dailyFine) {
-      const days = parseFloat(daysInput) || 0;
-      finalAmount = days * (selectedPenalty.dailyMaxAmount ?? 0);
+    if (selectedPenalty.fixedAmount) {
+      return selectedPenalty.fixedAmount;
     }
 
-    // For penalties where doubleTax is true
     if (selectedPenalty.doubleTax) {
-      finalAmount *= 2; // Double the input amount
+      finalAmount *= 2;
     }
 
-    // For comparative penalties, choose the higher value
     if (selectedPenalty.comparative) {
-      finalAmount = Math.max(finalAmount, selectedPenalty.maxAmount ?? 0);
+      finalAmount = Math.max(
+        finalAmount,
+        selectedPenalty.currencyPointsValue ?? 0
+      );
+    }
+
+    if (
+      selectedPenalty.requiresCustomInputs &&
+      selectedPenalty.calculationMethod
+    ) {
+      // Use the secure execution method for custom calculation logic
+      const calculatedValue = executeCalculationMethod(
+        selectedPenalty.calculationMethod,
+        formValues
+      );
+
+      console.log("Calculated Value", calculatedValue);
+
+      if (typeof calculatedValue === "number") {
+        finalAmount = calculatedValue;
+      }
     }
 
     return finalAmount;
@@ -91,13 +184,13 @@ export default function AddPenalty({
 
   const handleSubmit = () => {
     const finalAmount = calculateFinalAmount();
+    console.log("final Amount", finalAmount);
     if (!isNaN(finalAmount) && finalAmount > 0 && selectedPenalty) {
       onAdd({ ...selectedPenalty, finalAmount });
       // Reset states after adding
       setSelectedPenalty(null);
       setSelectedCategory("");
       setAmountInput("");
-      setDaysInput(""); // Reset days input for daily fine penalties
     }
   };
 
@@ -124,7 +217,13 @@ export default function AddPenalty({
   return (
     <div className="grid grid-cols-1 md:grid-cols-6 gap-y-2 md:gap-x-6 pt-2">
       <div className="md:col-span-2">
-        <Select onValueChange={setSelectedCategory} value={selectedCategory}>
+        <Select
+          onValueChange={(value) => {
+            setSelectedCategory(value);
+            setSelectedPenalty(null);
+          }}
+          value={selectedCategory}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select Category to add Penalty" />
           </SelectTrigger>
@@ -174,20 +273,8 @@ export default function AddPenalty({
           )}
         </div>
       )}
-      {selectedPenalty && selectedPenalty.dailyFine && (
-        <div className="md:col-span-2">
-          <div className="flex items-center w-full">
-            <Label className="md:w-full">Days of Default </Label>
-            <Input
-              type="number"
-              value={daysInput}
-              onChange={(e) => setDaysInput(e.target.value)}
-              placeholder="Enter days of default"
-            />
-          </div>
-        </div>
-      )}
-      {selectedPenalty && !selectedPenalty?.dailyFine && (
+      {selectedPenalty?.requiresCustomInputs && renderCustomInputs()}
+      {selectedPenalty && !selectedPenalty.requiresCustomInputs && (
         <>
           <div className="md:col-span-2">
             <div className="flex items-center w-full">
@@ -209,7 +296,7 @@ export default function AddPenalty({
                 max={
                   selectedPenalty && selectedPenalty.comparative
                     ? undefined
-                    : selectedPenalty?.maxAmount
+                    : selectedPenalty?.currencyPointsValue
                 }
               />
             </div>

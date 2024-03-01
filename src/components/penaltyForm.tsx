@@ -15,18 +15,26 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import AddPenalty from "./addPenalty";
 import PenaltyItem from "./editPenalty";
+import { useState } from "react";
+
+export type FormValues = {
+  [key: string]: string;
+};
+
+export type ParsedInputs = {
+  [key: string]: number | string;
+};
 
 const PenaltySchema = z.object({
   label: z.string(),
   value: z.string(),
   category: z.string(),
   comparative: z.boolean(),
-  dailyFine: z.boolean(),
+  fixed: z.boolean(),
   doubleTax: z.boolean(),
-  currencyPoints: z.number(),
-  maxAmount: z.number().optional(),
+  currencyPoints: z.number().optional(),
+  currencyPointsValue: z.number().optional(),
   finalAmount: z.number(),
- 
 });
 
 const FormSchema = z.object({
@@ -80,6 +88,19 @@ export const PenaltyForm = () => {
       ),
     });
   }
+
+  //dynamic form handlers  and logic
+
+  // State for dynamic form values
+  const [formValues, setFormValues] = useState<FormValues>({});
+
+  // Update dynamic form values
+  const handleCustomInputChange = (variable: string, value: string) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [variable]: value,
+    }));
+  };
 
   const penalties = form.watch("penalties");
 
@@ -161,9 +182,15 @@ export const PenaltyForm = () => {
               index={index}
               onEdit={handleEditPenalty}
               onDelete={handleDeletePenalty}
+              formValues={formValues}
+              handleCustomInputChange={handleCustomInputChange}
             />
           ))}
-        <AddPenalty onAdd={handleAddPenalty} />
+        <AddPenalty
+          onAdd={handleAddPenalty}
+          formValues={formValues}
+          handleCustomInputChange={handleCustomInputChange}
+        />
         <Button type="submit">Submit</Button>
       </form>
     </Form>

@@ -1,11 +1,28 @@
+type InputOption = {
+  label: string;
+  value: string;
+};
+
+type CustomInput = {
+  label: string;
+  type: string;
+  variable: string;
+  options?: InputOption[];
+};
+
 type Penalty = {
   label: string;
   value: string;
   category: string;
   comparative: boolean;
-  currencyPoints: number;
-  maxAmount?: number;
-  doubleTax:boolean
-  dailyFine:boolean
-  dailyMaxAmount?:number
+  fixed: boolean;
+  doubleTax: boolean;
+  currencyPoints?: number;
+  currencyPointsValue?: number;
+  requiresCustomInputs?: boolean;
+  inputs?: CustomInput[];
+  calculationMethod?: string;
+  fixedAmount?: number;
 };
+
+
