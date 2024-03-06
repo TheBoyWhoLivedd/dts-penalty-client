@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Heading } from "./ui/heading";
+import { FormHeading } from "./ui/FormHeading";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -116,7 +116,7 @@ export const PenaltyForm = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <Heading title="Tax-Payer Details" />
+        <FormHeading title="Tax-Payer Details" />
         <div className="md:grid md:grid-cols-2 gap-6 pt-2">
           <FormField
             control={form.control}
@@ -182,7 +182,7 @@ export const PenaltyForm = () => {
             )}
           />
         </div>
-        <Heading title="Penalty Details" />
+        <FormHeading title="Penalty Details" />
         {penalties &&
           penalties.map((penalty, index) => (
             <PenaltyItem
@@ -200,7 +200,7 @@ export const PenaltyForm = () => {
           formValues={formValues}
           handleCustomInputChange={handleCustomInputChange}
         />
-        <Heading title="Penalty Description" />
+        <FormHeading title="Penalty Description" />
         <FormField
           control={form.control}
           name="description"

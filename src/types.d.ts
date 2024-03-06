@@ -25,4 +25,35 @@ type Penalty = {
   fixedAmount?: number;
 };
 
+declare interface ErrorResponse {
+  data: {
+    message: string;
+  };
+}
 
+type PenaltyConfig = {
+  label: string;
+  value: string;
+  comparative: boolean;
+  fixed: boolean;
+  category: string;
+  requiresCustomInputs?: boolean;
+  currencyPoints?: number;
+  currencyPointsValue?: number;
+  doubleTax: boolean;
+  inputs?: InputConfig[];
+  calculationMethod?: string;
+  fixedAmount?: number;
+};
+
+type InputConfig = {
+  label: string;
+  type: string;
+  variable: string;
+  options?: OptionConfig[];
+};
+
+type OptionConfig = {
+  label: string;
+  value: string;
+};

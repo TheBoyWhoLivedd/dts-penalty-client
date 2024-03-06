@@ -93,4 +93,3 @@ export const penalties = [
       "function(inputs) { const { taxOn90PercentActualAmount,taxOnEstimatedAmount } = inputs; return (taxOn90PercentActualAmount - taxOnEstimatedAmount) * 0.2; }",
   },
 ];
-
