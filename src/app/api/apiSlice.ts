@@ -11,8 +11,7 @@ interface ApiError {
   message: string;
 }
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3500";
-// "https://ura-project-manager-api.onrender.com"
-// "https://ura-project-manager.hitajitech.site"
+
 const baseQuery = fetchBaseQuery({
   baseUrl: apiUrl,
   validateStatus: (response, result) => {
@@ -38,7 +37,7 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-console.log(baseQuery);
+// console.log(baseQuery);
 
 const baseQueryWithReauth = async (
   args: string | FetchArgs,
@@ -85,7 +84,7 @@ const baseQueryWithReauth = async (
 
 export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Note", "User", "Department", "Phase", "Project", "Task"],
+  tagTypes: ["Note", "User", "Project", "Penalty"],
   endpoints: (builder) => ({
     exampleEndpoint: builder.query({
       query: () => `/example`,

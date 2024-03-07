@@ -60,8 +60,10 @@ const FormSchema = z.object({
       message: "Description must contain at least 8 words.",
     }),
 });
-
-export const PenaltyForm = () => {
+interface PenaltyFormProps {
+  data: PenaltyConfig[];
+}
+export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
@@ -196,6 +198,7 @@ export const PenaltyForm = () => {
             />
           ))}
         <AddPenalty
+          penalties={data}
           onAdd={handleAddPenalty}
           formValues={formValues}
           handleCustomInputChange={handleCustomInputChange}

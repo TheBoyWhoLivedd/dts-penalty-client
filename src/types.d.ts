@@ -32,8 +32,10 @@ declare interface ErrorResponse {
 }
 
 type PenaltyConfig = {
-  label: string;
-  value: string;
+  _id: string;
+  id: string;
+  penaltyTitle: string;
+  penaltySection: string;
   comparative: boolean;
   fixed: boolean;
   category: string;

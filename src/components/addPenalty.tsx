@@ -1,4 +1,4 @@
-import { penalties } from "@/lib/data";
+// import { penalties } from "@/lib/data";
 import { Button } from "./ui/button";
 import {
   Command,
@@ -28,15 +28,20 @@ export default function AddPenalty({
   onAdd,
   formValues,
   handleCustomInputChange,
+  penalties,
 }: {
   onAdd: (penalty: Penalty & { finalAmount: number }) => void;
   formValues: FormValues;
   handleCustomInputChange: (variable: string, value: string) => void;
+  penalties: PenaltyConfig[];
 }) {
+  console.log("Penalties Receieved", penalties);
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedPenalty, setSelectedPenalty] = useState<Penalty | null>(null);
+  const [selectedPenalty, setSelectedPenalty] = useState<PenaltyConfig | null>(
+    null
+  );
   const [amountInput, setAmountInput] = useState<string>("");
 
   // Dynamically generate form inputs for custom penalty inputs
@@ -96,19 +101,16 @@ export default function AddPenalty({
       new Set(penalties.map((p) => p.category))
     );
     return uniqueCategories.sort();
-  }, []);
+  }, [penalties]);
 
   // Filter penalties based on the selected category
   const filteredPenalties = useMemo(() => {
     return penalties.filter((p) => p.category === selectedCategory);
-  }, [selectedCategory]);
+  }, [selectedCategory, penalties]);
 
   const handleSelectPenalty = (value: string) => {
-    const penalty = penalties.find(
-      (penalty) => penalty.value.toLowerCase() === value
-    );
+    const penalty = penalties.find((penalty) => penalty.id === value);
     setSelectedPenalty(penalty || null);
-    // penalty && setAmountInput((penalty.currencyPointsValue ?? 0).toString());
     setOpen(false);
   };
 
@@ -202,11 +204,11 @@ export default function AddPenalty({
         <CommandGroup>
           {filteredPenalties.map((penalty) => (
             <CommandItem
-              key={penalty.value}
-              value={penalty.value}
-              onSelect={handleSelectPenalty}
+              key={penalty._id}
+              value={penalty.penaltyTitle}
+              onSelect={() => handleSelectPenalty(penalty.id)}
             >
-              {penalty.label}
+              {penalty.penaltyTitle}
             </CommandItem>
           ))}
         </CommandGroup>
@@ -248,7 +250,7 @@ export default function AddPenalty({
                   role="combobox"
                   className="w-full justify-between"
                 >
-                  {selectedPenalty ? selectedPenalty.label : "+ Add Penalty"}
+                  {selectedPenalty ? selectedPenalty.penaltyTitle : "+ Add Penalty"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent>
@@ -263,7 +265,7 @@ export default function AddPenalty({
                   role="combobox"
                   className="w-full justify-between"
                 >
-                  {selectedPenalty ? selectedPenalty.label : "+ Add Penalty"}
+                  {selectedPenalty ? selectedPenalty.penaltyTitle : "+ Add Penalty"}
                 </Button>
               </DrawerTrigger>
               <DrawerContent>

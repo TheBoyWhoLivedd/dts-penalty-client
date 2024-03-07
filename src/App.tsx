@@ -1,5 +1,4 @@
 import { Route, Routes } from "react-router-dom";
-// import { PenaltyForm } from "./components/penaltyForm";
 import Layout from "./components/Layout";
 import Login from "./features/auth/Login";
 import PersistLogin from "./features/auth/PersistLogin";
@@ -7,12 +6,13 @@ import RequireAuth from "./features/auth/RequireAuth";
 import { ROLES } from "./config/roles";
 import Prefetch from "./features/auth/Prefetch";
 import DashLayout from "./components/DashLayout";
-import Welcome from "./features/penalties/Welcome";
+import Welcome from "./features/penaltiesConfig/Welcome";
 import UsersList from "./features/users/UsersList";
 import EditUser from "./features/users/EditUser";
 import AddUser from "./features/users/AddUser";
-import PenaltyConfigForm from "./features/penalties/components/penaltyConfigForm";
-import { PenaltyForm } from "./components/penaltyForm";
+import PenaltyConfigForm from "./features/penaltiesConfig/components/penaltyConfigForm";
+import PenaltiesList from "./features/penaltiesConfig/PenaltiesConfigList";
+import { IssuePenalty } from "./features/penaltiesConfig/IssuePenalty";
 
 function App() {
   return (
@@ -45,14 +45,17 @@ function App() {
                   <Route path="new" element={<AddUser />} />
                 </Route>
                 <Route path="penalties">
-                  {/* <Route index element={<UsersList />} />
-                  <Route path=":id" element={<EditUser />} /> */}
-                  <Route path="new" element={<PenaltyConfigForm />} />
+                  <Route index element={<PenaltiesList />} />
+                  {/* <Route path=":id" element={<EditUser />} /> */}
+                  <Route
+                    path="new"
+                    element={<PenaltyConfigForm initialData={null} />}
+                  />
                 </Route>
                 <Route path="projects">
                   {/* <Route index element={<UsersList />} />
                   <Route path=":id" element={<EditUser />} /> */}
-                  <Route path="new" element={<PenaltyForm />} />
+                  <Route path="new" element={<IssuePenalty />} />
                 </Route>
               </Route>
             </Route>

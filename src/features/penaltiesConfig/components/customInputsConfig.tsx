@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import { ExpressionBuilder } from "./expressionBuilder";
+import { Control, UseFormSetValue } from "react-hook-form";
+import { FormValues } from "./penaltyConfigForm";
 
 interface CustomInputField {
   id: string;
@@ -23,6 +26,8 @@ interface CustomInputsConfigProps {
   append: (input: Omit<CustomInputField, "id">) => void;
   remove: (index: number) => void;
   update: (index: number, input: Omit<CustomInputField, "id">) => void;
+  control: Control<FormValues>;
+  setValue: UseFormSetValue<FormValues>;
 }
 
 export const CustomInputsConfig: React.FC<CustomInputsConfigProps> = ({
@@ -30,6 +35,8 @@ export const CustomInputsConfig: React.FC<CustomInputsConfigProps> = ({
   append,
   remove,
   update,
+  control,
+  setValue,
 }) => {
   console.log("fields", fields);
   const [newInput, setNewInput] = useState({
@@ -82,7 +89,7 @@ export const CustomInputsConfig: React.FC<CustomInputsConfigProps> = ({
               </Select>
             </div>
             <div className="col-span-2">
-            <Label>Input Name</Label>
+              <Label>Input Name</Label>
               <Input
                 value={field.label}
                 onChange={(e) =>
@@ -154,12 +161,22 @@ export const CustomInputsConfig: React.FC<CustomInputsConfigProps> = ({
             placeholder="Variable Name"
           />
         </div>
+
         <div className="col-span-1 flex items-end mt-2">
           <Button type="button" onClick={handleAddInput}>
             <span className="hidden sm:inline">Add</span>
             <PlusIcon className="ml-0 h-5 w-5 sm:ml-2" />
           </Button>
         </div>
+      </div>
+      <div>
+        {fields.length !== 0 && (
+          <ExpressionBuilder
+            control={control}
+            variables={fields}
+            setValue={setValue}
+          />
+        )}
       </div>
     </>
   );

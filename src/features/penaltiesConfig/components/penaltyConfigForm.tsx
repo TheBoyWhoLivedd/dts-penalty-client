@@ -23,6 +23,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
 import { CustomInputsConfig } from "./customInputsConfig";
+import {
+  useAddNewPenaltyMutation,
+  useUpdatePenaltyMutation,
+} from "../penaltyApiSlice";
+import { useNavigate, useParams } from "react-router-dom";
 
 const OptionConfigSchema = z.object({
   label: z.string(),
@@ -36,7 +41,7 @@ const InputConfigSchema = z.object({
   options: z.array(OptionConfigSchema).optional(),
 });
 
-const PenaltyConfigSchema = z.object({
+export const PenaltyConfigSchema = z.object({
   category: z.string(),
   taxType: z.string(),
   penaltyTitle: z.string().min(1, {
@@ -57,8 +62,30 @@ const PenaltyConfigSchema = z.object({
   fixedAmount: z.number().optional(),
 });
 
-const PenaltyConfigForm = () => {
-  const form = useForm<z.infer<typeof PenaltyConfigSchema>>({
+export type FormValues = z.infer<typeof PenaltyConfigSchema>;
+
+interface PenaltyConfigFormProps {
+  initialData: PenaltyConfig | null;
+}
+const PenaltyConfigForm: React.FC<PenaltyConfigFormProps> = ({
+  initialData,
+}) => {
+  const [
+    addNewPenalty,
+    // { isLoading, isSuccess, isError, error }
+  ] = useAddNewPenaltyMutation();
+
+  const [
+    updatePenalty,
+    // {
+    //   isLoading: isUpdateLoading,
+    //   isSuccess: isUpdateSuccess,
+    //   isError: isUpdateError,
+    //   error: updateError,
+    // },
+  ] = useUpdatePenaltyMutation();
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(PenaltyConfigSchema),
     defaultValues: {
       penaltyTitle: "",
@@ -67,8 +94,12 @@ const PenaltyConfigForm = () => {
       comparative: false,
       requiresCustomInputs: false,
       doubleTax: false,
+      calculationMethod: "",
     },
   });
+
+  const params = useParams();
+  const navigate = useNavigate();
 
   // Watch the "fixed"/"comparative/requiresCustomInputs" checkbox states
   const isFixed = form.watch("fixed");
@@ -93,17 +124,66 @@ const PenaltyConfigForm = () => {
     return value.replace(/,/g, "");
   };
 
-  function onSubmit(data: z.infer<typeof PenaltyConfigSchema>) {
-    console.log(JSON.stringify(data));
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-  }
+  const onSubmit = async (data: FormValues) => {
+    console.log(data);
+    if (!initialData) {
+      try {
+        const response = await addNewPenalty({
+          ...data,
+          // If currencyPoints is provided, don't send currencyPointsValue from the form
+          // It should be calculated server-side or within the mutation if needed
+          ...(data.currencyPoints && {
+            currencyPointsValue: data.currencyPoints * 25000,
+          }),
+        }).unwrap();
+        toast({
+          title: "Success",
+          description: response.message,
+        });
+        navigate("/dash/penalties"); // Adjust the navigation path as needed
+      } catch (error) {
+        if (typeof error === "object" && error !== null && "data" in error) {
+          const errorResponse = error as ErrorResponse;
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: `Error: ${errorResponse.data.message}`,
+          });
+        }
+      }
+    } else {
+      console.log("Data for edit", data);
+      try {
+        const updateResponse = await updatePenalty({
+          id: params.id, // Ensure `params` is available in this context or passed correctly
+          ...data,
+          // If currencyPoints is provided during update, calculate currencyPointsValue
+          ...(data.currencyPoints && {
+            currencyPointsValue: data.currencyPoints * 25000,
+          }),
+        }).unwrap();
+        toast({
+          title: "Success",
+          description: updateResponse.message,
+        });
+        navigate("/dash/penalties"); // Adjust the navigation path as needed
+      } catch (updateError) {
+        if (
+          typeof updateError === "object" &&
+          updateError !== null &&
+          "data" in updateError
+        ) {
+          const errorResponse = updateError as ErrorResponse;
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: `Error: ${errorResponse.data.message}`,
+          });
+        }
+      }
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
@@ -351,6 +431,8 @@ const PenaltyConfigForm = () => {
         </div>
         {requiresCustomInputs && (
           <CustomInputsConfig
+            control={form.control}
+            setValue={form.setValue}
             fields={fields}
             append={append}
             remove={remove}
