@@ -35,11 +35,11 @@ const PenaltiesList = () => {
   }
 
   if (isSuccess) {
-    console.log("Penalties", penalties);
+    // console.log("Penalties", penalties);
     const transformedData = penalties.ids.map((penaltyId) => ({
       ...penalties.entities[penaltyId],
     }));
-    console.log(transformedData);
+    // console.log(transformedData);
     return <PenaltiesConfigClient data={transformedData} />;
   }
 

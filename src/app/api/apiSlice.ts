@@ -10,6 +10,7 @@ import { setCredentials } from "@/features/auth/authSlice";
 interface ApiError {
   message: string;
 }
+
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3500";
 
 const baseQuery = fetchBaseQuery({
@@ -44,7 +45,7 @@ const baseQueryWithReauth = async (
   api: BaseQueryApi,
   extraOptions: object
 ) => {
-  // console.log(args) // request url, method, body
+  console.log(args) // request url, method, body
   // console.log(api) // signal, dispatch, getState()
   // console.log(extraOptions) //custom like {shout: true}
 

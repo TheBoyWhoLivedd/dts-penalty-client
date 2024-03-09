@@ -27,8 +27,9 @@ export type ParsedInputs = {
 };
 
 const PenaltySchema = z.object({
-  label: z.string(),
-  value: z.string(),
+  id: z.string(),
+  penaltyTitle: z.string(),
+  penaltySection: z.string(),
   category: z.string(),
   comparative: z.boolean(),
   fixed: z.boolean(),
@@ -68,7 +69,9 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
     resolver: zodResolver(FormSchema),
   });
 
-  const handleAddPenalty = (penalty: Penalty & { finalAmount: number }) => {
+  const handleAddPenalty = (
+    penalty: PenaltyConfig & { finalAmount: number }
+  ) => {
     console.log("Penalty Receieved", penalty);
     const currentPenalties = form.getValues("penalties") || [];
     form.setValue("penalties", [...currentPenalties, penalty]);
@@ -76,7 +79,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
 
   const handleEditPenalty = (
     index: number,
-    updatedPenalty: Penalty & { finalAmount: number }
+    updatedPenalty: Omit<PenaltyConfig, "_id"> & { finalAmount: number }
   ) => {
     const newPenalties = [...penalties];
     newPenalties[index] = updatedPenalty;
@@ -188,6 +191,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
         {penalties &&
           penalties.map((penalty, index) => (
             <PenaltyItem
+              penalties={data}
               key={index}
               penalty={penalty}
               index={index}

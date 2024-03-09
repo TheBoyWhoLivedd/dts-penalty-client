@@ -1,4 +1,3 @@
-import { penalties } from "@/lib/data";
 import { Button } from "./ui/button";
 import {
   Command,
@@ -25,27 +24,34 @@ import {
 } from "@/components/ui/select";
 import { FormValues, ParsedInputs } from "./penaltyForm";
 
-export default function PenaltyItem({
+interface PenaltyItemProps {
+  penalty: Omit<PenaltyConfig, "_id"> & { finalAmount: number };
+  onEdit: (
+    index: number,
+    penalty: Omit<PenaltyConfig, "_id"> & { finalAmount: number }
+  ) => void;
+  index: number;
+  onDelete: (index: number) => void;
+  formValues: FormValues;
+  handleCustomInputChange: (variable: string, value: string) => void;
+  penalties: PenaltyConfig[];
+}
+
+const PenaltyItem: React.FC<PenaltyItemProps> = ({
   penalty,
   onEdit,
   index,
   onDelete,
   formValues,
   handleCustomInputChange,
-}: {
-  penalty: Penalty & { finalAmount: number };
-  onEdit: (index: number, penalty: Penalty & { finalAmount: number }) => void;
-  index: number;
-  onDelete: (index: number) => void;
-  formValues: FormValues;
-  handleCustomInputChange: (variable: string, value: string) => void;
-}) {
-  console.log("penalty", penalty);
+  penalties,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
 
-  const [selectedPenalty, setSelectedPenalty] = useState<Penalty | null>(
-    penalty
-  );
+  const [selectedPenalty, setSelectedPenalty] = useState<Omit<
+    PenaltyConfig,
+    "_id"
+  > | null>(penalty);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(
     penalty.category
@@ -54,8 +60,6 @@ export default function PenaltyItem({
   const [amountInput, setAmountInput] = useState(
     penalty.finalAmount.toString()
   );
-
-  console.log("formValues", formValues);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [open, setOpen] = useState(false);
@@ -66,15 +70,15 @@ export default function PenaltyItem({
       new Set(penalties.map((p) => p.category))
     );
     return uniqueCategories.sort();
-  }, []);
+  }, [penalties]);
 
   // Filter penalties based on the selected category
   const filteredPenalties = useMemo(() => {
     return penalties.filter((p) => p.category === selectedCategory);
-  }, [selectedCategory]);
+  }, [selectedCategory, penalties]);
 
   const handleSelectPenalty = (value: string) => {
-    const newPenalty = penalties.find((p) => p.value.toLowerCase() === value);
+    const newPenalty = penalties.find((penalty) => penalty.id === value);
     setSelectedPenalty(newPenalty || null);
     setAmountInput((newPenalty?.currencyPointsValue ?? 0).toString());
     setOpen(false);
@@ -136,7 +140,12 @@ export default function PenaltyItem({
     inputs: FormValues
   ) => {
     try {
-      // Convert inputs to the correct types
+      const allowedOps = {
+        MAX: Math.max,
+        MIN: Math.min,
+      };
+
+      // Convert inputs to the correct types and only include allowed variables
       const parsedInputs = Object.keys(inputs).reduce<ParsedInputs>(
         (acc, key) => {
           acc[key] = isNaN(Number(inputs[key]))
@@ -147,12 +156,22 @@ export default function PenaltyItem({
         {}
       );
 
-      // Define a function from the methodString
-      // cringe, I know. (temporary solution)
-      const fn = new Function("inputs", `return (${methodString});`);
+      const preparedExpression = Object.keys(allowedOps).reduce((expr, op) => {
+        // const safeOp = allowedOps[op].toString();
+        return expr.replace(new RegExp(op, "g"), `allowedOps.${op}`);
+      }, methodString);
 
-      // Execute the function with parsed inputs
-      const result = fn()(parsedInputs);
+      console.log("Prepared Exrpression", preparedExpression);
+
+      const executeExpression = new Function(
+        "inputs",
+        "allowedOps",
+        `with(inputs) { return ${preparedExpression}; }`
+      );
+
+      console.log("built function", executeExpression);
+
+      const result = executeExpression(parsedInputs, allowedOps);
 
       return result;
     } catch (error) {
@@ -185,7 +204,6 @@ export default function PenaltyItem({
       selectedPenalty.requiresCustomInputs &&
       selectedPenalty.calculationMethod
     ) {
-      // Use the secure execution method for custom calculation logic
       const calculatedValue = executeCalculationMethod(
         selectedPenalty.calculationMethod,
         formValues
@@ -207,7 +225,6 @@ export default function PenaltyItem({
     if (!isNaN(finalAmount) && finalAmount > 0 && selectedPenalty) {
       onEdit(index, { ...selectedPenalty, finalAmount });
       setIsEditing(false);
-      // Optionally reset form/input states here if needed
     }
   };
 
@@ -217,13 +234,13 @@ export default function PenaltyItem({
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup>
-          {filteredPenalties.map((p) => (
+          {filteredPenalties.map((penalty) => (
             <CommandItem
-              key={p.value}
-              value={p.value}
-              onSelect={handleSelectPenalty}
+              key={penalty._id}
+              value={penalty.penaltyTitle}
+              onSelect={() => handleSelectPenalty(penalty.id)}
             >
-              {p.label}
+              {penalty.penaltyTitle}
             </CommandItem>
           ))}
         </CommandGroup>
@@ -235,7 +252,7 @@ export default function PenaltyItem({
     <div className="grid grid-cols-1 md:grid-cols-6 gap-y-2 md:gap-y-0 md:gap-x-6 pt-2">
       {!isEditing ? (
         <>
-          <div className="md:col-span-4">{penalty.label}</div>
+          <div className="md:col-span-4">{penalty.penaltyTitle}</div>
           <div className="md:col-span-2 flex justify-between items-end md:items-center ">
             <div>
               UGX{" "}
@@ -303,7 +320,9 @@ export default function PenaltyItem({
                     role="combobox"
                     className="w-full justify-between"
                   >
-                    {selectedPenalty ? selectedPenalty.label : "Select Penalty"}
+                    {selectedPenalty
+                      ? selectedPenalty.penaltyTitle
+                      : "Select Penalty"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent>
@@ -318,7 +337,9 @@ export default function PenaltyItem({
                     role="combobox"
                     className="w-full justify-between"
                   >
-                    {selectedPenalty ? selectedPenalty.label : "Select Penalty"}
+                    {selectedPenalty
+                      ? selectedPenalty.penaltyTitle
+                      : "Select Penalty"}
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent>
@@ -375,4 +396,5 @@ export default function PenaltyItem({
       )}
     </div>
   );
-}
+};
+export default PenaltyItem;

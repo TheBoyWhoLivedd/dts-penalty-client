@@ -21,7 +21,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import useAuth from "@/hooks/useAuth";
 
@@ -29,7 +29,7 @@ export const SidebarRoutes = () => {
   const { status } = useAuth();
   const isAdmin = status === "Admin";
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   type RouteType = {
     title: string;
@@ -152,7 +152,11 @@ export const SidebarRoutes = () => {
                     {route.children.map((child) => {
                       const isSubActive = pathname === child.href;
                       return (
-                        <Link key={child.title} to={child.href}>
+                        <div
+                          key={child.title}
+                          onClick={() => navigate(child.href)}
+                          className="w-full cursor-pointer"
+                        >
                           <NavigationMenuItem className="w-full">
                             <NavigationMenuLink
                               className={cn(
@@ -165,7 +169,7 @@ export const SidebarRoutes = () => {
                               {child.title}
                             </NavigationMenuLink>
                           </NavigationMenuItem>
-                        </Link>
+                        </div>
                       );
                     })}
                   </AccordionContent>
@@ -174,7 +178,11 @@ export const SidebarRoutes = () => {
             );
           } else {
             return (
-              <Link key={route.title} to={route.href!} className="w-full">
+              <div
+                key={route.title}
+                onClick={() => navigate(route.href!)}
+                className="w-full cursor-pointer"
+              >
                 <NavigationMenuItem className="w-full">
                   <NavigationMenuLink
                     className={cn(
@@ -187,7 +195,7 @@ export const SidebarRoutes = () => {
                     {route.title}
                   </NavigationMenuLink>
                 </NavigationMenuItem>
-              </Link>
+              </div>
             );
           }
         })}

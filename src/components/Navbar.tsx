@@ -10,11 +10,12 @@ export const Navbar = () => {
       <MobileSidebar />
       <div>
         <Link
-          to="/dash/projects"
-          className="flex items-center gap-2 pl-1 md:pl-10"
+          to="/dash"
+          className="flex items-center gap-2 pl-1 md:pl-0"
         >
           {/* <CompanyIcon /> */}
-          <span className="text-2xl font-bold tracking-tight">PENALTIES</span>
+          {/* <span className="text-2xl font-bold tracking-tight">PENALTIES</span> */}
+          <img src="/URA-logo-1.png" width={100} height={100} />
         </Link>
       </div>
       <div className=" ml-auto flex gap-3  items-center">

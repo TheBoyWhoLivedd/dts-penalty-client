@@ -7,11 +7,11 @@ export const IssuePenalty = () => {
   if (isLoading) return <p>Loading...</p>;
 
   if (isSuccess) {
-    console.log("fetched penalties", penalties);
+    // console.log("fetched penalties", penalties);
     const transformedData = penalties.ids.map((penaltyId) => ({
       ...penalties.entities[penaltyId],
     }));
-    console.log("Transormed", transformedData);
+    // console.log("Transormed", transformedData);
     return <PenaltyForm data={transformedData} />;
   }
 };

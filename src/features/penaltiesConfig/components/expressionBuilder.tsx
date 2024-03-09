@@ -65,8 +65,6 @@ export const ExpressionBuilder: React.FC<ExpressionBuilderProps> = ({
       "i"
     );
 
-    console.log("isValidExpression", validExpressionPattern.test(expression));
-
     return validExpressionPattern.test(expression);
   };
 

@@ -12,7 +12,9 @@ const DashLayout = () => {
         <Sidebar />
       </div>
       <div className="md:pl-56 pt-[90px] h-full px-4 md:px-7">
-        <Outlet />
+        <div className="mx-auto h-full md:px-6 lg:px-18">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

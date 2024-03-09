@@ -1,4 +1,3 @@
-// import { penalties } from "@/lib/data";
 import { Button } from "./ui/button";
 import {
   Command,
@@ -24,18 +23,19 @@ import {
 } from "@/components/ui/select";
 import { FormValues, ParsedInputs } from "./penaltyForm";
 
-export default function AddPenalty({
+interface AddPenaltyProps {
+  onAdd: (penalty: PenaltyConfig & { finalAmount: number }) => void;
+  formValues: FormValues;
+  handleCustomInputChange: (variable: string, value: string) => void;
+  penalties: PenaltyConfig[];
+}
+
+const AddPenalty: React.FC<AddPenaltyProps> = ({
   onAdd,
   formValues,
   handleCustomInputChange,
   penalties,
-}: {
-  onAdd: (penalty: Penalty & { finalAmount: number }) => void;
-  formValues: FormValues;
-  handleCustomInputChange: (variable: string, value: string) => void;
-  penalties: PenaltyConfig[];
-}) {
-  console.log("Penalties Receieved", penalties);
+}) => {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -46,14 +46,18 @@ export default function AddPenalty({
 
   // Dynamically generate form inputs for custom penalty inputs
   const renderCustomInputs = () => {
-    return selectedPenalty?.inputs?.map((input) => {
+    return selectedPenalty?.inputs?.map((input, index) => {
+      const inputId = `input-${input.variable}-${index}`;
       switch (input.type) {
         case "number":
           return (
             <div className="md:col-span-3 flex items-center justify-between pt-2">
               <div className="flex items-center w-full">
-                <Label className="md:w-full">{input.label}</Label>
+                <Label className="md:w-full" htmlFor={inputId}>
+                  {input.label}
+                </Label>
                 <Input
+                  aria-label={input.label}
                   key={input.variable}
                   type="number"
                   value={formValues[input.variable] || ""}
@@ -74,7 +78,7 @@ export default function AddPenalty({
                 handleCustomInputChange(input.variable, value)
               }
             >
-              <SelectTrigger>
+              <SelectTrigger aria-haspopup="listbox">
                 <SelectValue placeholder={input.label} />
               </SelectTrigger>
               <SelectContent>
@@ -119,7 +123,13 @@ export default function AddPenalty({
     inputs: FormValues
   ) => {
     try {
-      // Convert inputs to the correct types
+      // Define allowed operations and variables
+      const allowedOps = {
+        MAX: Math.max,
+        MIN: Math.min,
+      };
+
+      // Convert inputs to the correct types and only include allowed variables
       const parsedInputs = Object.keys(inputs).reduce<ParsedInputs>(
         (acc, key) => {
           acc[key] = isNaN(Number(inputs[key]))
@@ -130,12 +140,25 @@ export default function AddPenalty({
         {}
       );
 
-      // Define a function from the methodString
-      // cringe, I know. (temporary solution)
-      const fn = new Function("inputs", `return (${methodString});`);
+      // Prepare the expression by replacing allowed operations with their respective implementations
+      const preparedExpression = Object.keys(allowedOps).reduce((expr, op) => {
+        // const safeOp = allowedOps[op].toString();
+        return expr.replace(new RegExp(op, "g"), `allowedOps.${op}`);
+      }, methodString);
 
-      // Execute the function with parsed inputs
-      const result = fn()(parsedInputs);
+      console.log("Prepared Exrpression", preparedExpression);
+
+      // Create a function to execute the expression safely
+      const executeExpression = new Function(
+        "inputs",
+        "allowedOps",
+        `with(inputs) { return ${preparedExpression}; }`
+      );
+
+      console.log("built function", executeExpression);
+
+      // Execute the expression
+      const result = executeExpression(parsedInputs, allowedOps);
 
       return result;
     } catch (error) {
@@ -189,7 +212,6 @@ export default function AddPenalty({
     console.log("final Amount", finalAmount);
     if (!isNaN(finalAmount) && finalAmount > 0 && selectedPenalty) {
       onAdd({ ...selectedPenalty, finalAmount });
-      // Reset states after adding
       setSelectedPenalty(null);
       setSelectedCategory("");
       setAmountInput("");
@@ -250,7 +272,9 @@ export default function AddPenalty({
                   role="combobox"
                   className="w-full justify-between"
                 >
-                  {selectedPenalty ? selectedPenalty.penaltyTitle : "+ Add Penalty"}
+                  {selectedPenalty
+                    ? selectedPenalty.penaltyTitle
+                    : "+ Add Penalty"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent>
@@ -265,7 +289,9 @@ export default function AddPenalty({
                   role="combobox"
                   className="w-full justify-between"
                 >
-                  {selectedPenalty ? selectedPenalty.penaltyTitle : "+ Add Penalty"}
+                  {selectedPenalty
+                    ? selectedPenalty.penaltyTitle
+                    : "+ Add Penalty"}
                 </Button>
               </DrawerTrigger>
               <DrawerContent>
@@ -321,4 +347,6 @@ export default function AddPenalty({
       )}
     </div>
   );
-}
+};
+
+export default AddPenalty;
