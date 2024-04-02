@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertModal } from "@/components/modals/alert-modal";
 import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { ReloadIcon, TrashIcon } from "@radix-ui/react-icons";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,32 +55,17 @@ interface UserFormProps {
   initialData: User | null;
 }
 const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
-  const [
-    addNewUser,
-    // { isLoading, isSuccess, isError, error }
-  ] = useAddNewUserMutation();
+  const [addNewUser, { isLoading }] = useAddNewUserMutation();
 
-  const [
-    updateUser,
-    // {
-    //   isLoading: isUpdateLoading,
-    //   isSuccess: isUpdateSuccess,
-    //   isError: isUpdateError,
-    //   error: updateError,
-    // },
-  ] = useUpdateUserMutation();
+  const [updateUser, { isLoading: isUpdateLoading }] = useUpdateUserMutation();
 
-  const [
-    deleteUser,
-    // { isSuccess: isDeleteSuccess, isError: isDeleteError, error: deleteError },
-  ] = useDeleteUserMutation();
+  const [deleteUser, { isLoading: isDeleteLoading }] = useDeleteUserMutation();
 
   const params = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [open, setOpen] = useState(false);
-  const [loading] = useState(false);
 
   const title = initialData ? "Edit Users" : "Add Users";
   const description = initialData ? "Edit a User." : "Add a new User";
@@ -181,13 +166,13 @@ const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
         isOpen={open}
         onClose={() => setOpen(false)}
         onConfirm={onDelete}
-        loading={loading}
+        loading={isDeleteLoading}
       />
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
         {initialData && (
           <Button
-            disabled={loading}
+            disabled={isUpdateLoading || isLoading}
             variant="destructive"
             size="sm"
             onClick={() => setOpen(true)}
@@ -200,7 +185,7 @@ const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-8 w-full"
+          className="space-y-8 w-full "
         >
           <div className="md:grid md:grid-cols-3 gap-8">
             <FormField
@@ -211,7 +196,7 @@ const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
-                      disabled={loading}
+                      disabled={isUpdateLoading || isLoading}
                       placeholder="User/Employee name"
                       {...field}
                     />
@@ -228,7 +213,7 @@ const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
                     <Input
-                      disabled={loading}
+                      disabled={isUpdateLoading || isLoading}
                       placeholder="Enter Email"
                       {...field}
                     />
@@ -248,7 +233,7 @@ const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
                   <FormControl>
                     <Input
                       type="password"
-                      disabled={loading}
+                      disabled={isUpdateLoading || isLoading}
                       placeholder="Default Password"
                       {...field}
                     />
@@ -292,7 +277,14 @@ const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
               )}
             />
           </div>
-          <Button disabled={loading} className="ml-auto" type="submit">
+          <Button
+            disabled={isLoading || isUpdateLoading}
+            className="ml-auto"
+            type="submit"
+          >
+            {isLoading || isUpdateLoading ? (
+              <ReloadIcon className="mr-2 w-4 h-4 animate-spin" />
+            ) : null}
             {action}
           </Button>
         </form>

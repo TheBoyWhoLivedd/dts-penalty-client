@@ -21,7 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormValues, ParsedInputs } from "./penaltyForm";
+import {
+  FormValues,
+  ParsedInputs,
+} from "../features/payments/components/penaltyForm";
 
 interface AddPenaltyProps {
   onAdd: (penalty: PenaltyConfig & { finalAmount: number }) => void;
@@ -114,6 +117,7 @@ const AddPenalty: React.FC<AddPenaltyProps> = ({
 
   const handleSelectPenalty = (value: string) => {
     const penalty = penalties.find((penalty) => penalty.id === value);
+    console.log("Selected Penalty", penalty);
     setSelectedPenalty(penalty || null);
     setOpen(false);
   };
@@ -270,7 +274,7 @@ const AddPenalty: React.FC<AddPenaltyProps> = ({
                 <Button
                   variant="outline"
                   role="combobox"
-                  className="w-full justify-between"
+                  className="w-full justify-between whitespace-normal"
                 >
                   {selectedPenalty
                     ? selectedPenalty.penaltyTitle

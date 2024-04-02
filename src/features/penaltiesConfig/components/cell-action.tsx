@@ -20,7 +20,7 @@ import {
   TrashIcon,
 } from "@radix-ui/react-icons";
 import { useToast } from "@/components/ui/use-toast";
-import { useDeletePenaltyMutation } from "../penaltyApiSlice";
+import { useDeletePenaltyConfigMutation } from "../penaltyConfigApiSlice";
 
 interface CellActionProps {
   data: PenaltyColumn;
@@ -31,23 +31,20 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   // const params = useParams();
   const navigate = useNavigate();
 
-  const [
-    deletePenalty,
-    // { isSuccess: isDeleteSuccess, isError: isDeleteError, error: deleteError },
-  ] = useDeletePenaltyMutation();
+  const [deletePenaltyConfig, { isLoading: isDeleteLoading }] =
+    useDeletePenaltyConfigMutation();
 
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [loading] = useState(false);
 
   const onConfirm = async () => {
     try {
-      const deleteResponse = await deletePenalty({ id: data.id });
+      const deleteResponse = await deletePenaltyConfig({ id: data.id });
       console.log(deleteResponse);
       if ("data" in deleteResponse && deleteResponse.data) {
         toast({
           title: "Success",
-          description: deleteResponse.data,
+          description: deleteResponse.data.message,
         });
         setOpen(false);
       }
@@ -66,7 +63,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         isOpen={open}
         onClose={() => setOpen(false)}
         onConfirm={onConfirm}
-        loading={loading}
+        loading={isDeleteLoading}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -82,7 +79,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              navigate(`/dash/penaltys/${data.id}`);
+              navigate(`/dash/penalties/${data.id}`);
             }}
           >
             <Pencil1Icon className="mr-2 h-4 w-4" /> Update

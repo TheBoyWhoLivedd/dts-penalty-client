@@ -75,7 +75,7 @@ export default function Login() {
         description: "User Logged In",
         variant: "default",
       });
-      navigate("/dash");
+      navigate("/dash/payments");
     } catch (error) {
       console.log(error);
     } finally {

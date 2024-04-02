@@ -1,5 +1,5 @@
 import { PenaltiesConfigClient } from "./components/client";
-import { useGetPenaltiesQuery } from "./penaltyApiSlice";
+import { useGetPenaltiesConfigQuery } from "./penaltyConfigApiSlice";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 const PenaltiesList = () => {
@@ -9,7 +9,7 @@ const PenaltiesList = () => {
     isSuccess,
     isError,
     error,
-  } = useGetPenaltiesQuery(undefined, {
+  } = useGetPenaltiesConfigQuery(undefined, {
     pollingInterval: 60000,
     // refetchOnFocus: true,
     // refetchOnMountOrArgChange: true,

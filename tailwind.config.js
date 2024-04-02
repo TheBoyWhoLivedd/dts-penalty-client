@@ -1,3 +1,5 @@
+const { fontFamily } = require("tailwindcss/defaultTheme");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -17,7 +19,7 @@ module.exports = {
       },
     },
     fontSize: {
-      sm: "0.8rem",
+      sm: "0.875rem",
       base: "1rem",
       xl: "1.25rem",
       "2xl": "1.563rem",
@@ -25,12 +27,29 @@ module.exports = {
       "4xl": "2.441rem",
       "5xl": "3.052rem",
     },
+    fontWeight: {
+      thin: "100",
+      hairline: "100",
+      extralight: "200",
+      light: "300",
+      normal: "400",
+      medium: "500",
+      semibold: "600",
+      bold: "700",
+      extrabold: "800",
+      "extra-bold": "800",
+      black: "900",
+    },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", ...fontFamily.sans],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
+        body: "hsl(var(--body))",
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",

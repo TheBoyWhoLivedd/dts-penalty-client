@@ -12,7 +12,13 @@ import EditUser from "./features/users/EditUser";
 import AddUser from "./features/users/AddUser";
 import PenaltyConfigForm from "./features/penaltiesConfig/components/penaltyConfigForm";
 import PenaltiesList from "./features/penaltiesConfig/PenaltiesConfigList";
-import { IssuePenalty } from "./features/penaltiesConfig/IssuePenalty";
+import { IssuePenalty } from "./features/payments/IssuePenalty";
+import EditPenaltyConfig from "./features/penaltiesConfig/EditPenaltyConfig";
+import ResetPassword from "./features/auth/ResetPassword";
+import ForgotPassword from "./features/auth/ForgotPassword";
+import ChangePassword from "./features/auth/ChangePassword";
+import PaymentsList from "./features/payments/PaymentsList";
+import PaymentDetails from "./features/payments/PaymentDetails";
 
 function App() {
   return (
@@ -20,11 +26,11 @@ function App() {
       <Route path="/" element={<Layout />}>
         {/* public routes */}
         <Route index element={<Login />} />
-        {/* <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
           path="/reset-password/:encryptedEmail"
           element={<ResetPassword />}
-        /> */}
+        />
       </Route>
       {/* protected routes */}
       <Route element={<PersistLogin />}>
@@ -46,26 +52,25 @@ function App() {
                 </Route>
                 <Route path="penalties">
                   <Route index element={<PenaltiesList />} />
-                  {/* <Route path=":id" element={<EditUser />} /> */}
+                  <Route path=":id" element={<EditPenaltyConfig />} />
                   <Route
                     path="new"
                     element={<PenaltyConfigForm initialData={null} />}
                   />
                 </Route>
-                <Route path="projects">
-                  {/* <Route index element={<UsersList />} />
-                  <Route path=":id" element={<EditUser />} /> */}
-                  <Route path="new" element={<IssuePenalty />} />
-                </Route>
+              </Route>
+              <Route path="settings">
+                <Route index element={<ChangePassword />} />
+              </Route>
+              <Route path="payments">
+                <Route index element={<PaymentsList />} />
+                <Route path=":id" element={<PaymentDetails />} />
+                <Route path="new" element={<IssuePenalty />} />
               </Route>
             </Route>
           </Route>
         </Route>
       </Route>
-      {/* <main className="mx-auto min-h-screen max-w-screen-xl px-6 py-12 md:px-12 lg:px-24 bg-custom-gradient">
-        <PenaltyForm />
-      
-      </main> */}
     </Routes>
   );
 }

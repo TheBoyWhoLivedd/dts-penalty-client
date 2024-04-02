@@ -48,8 +48,8 @@ export const SidebarRoutes = () => {
 
   const adminRoutes: RouteType[] = [
     {
-      title: "Penalty Configuration",
-      label: "Penalty Configuration",
+      title: "Configure Penalties",
+      label: "Configure Penalties",
       isTitle: false,
       icon: <StackIcon />,
       children: [
@@ -57,14 +57,14 @@ export const SidebarRoutes = () => {
           title: "New Penalty",
           label: "New Penalty",
           href: "/dash/penalties/new",
-          parentKey: "Penalty Configuration",
+          parentKey: "Configure Penalties",
           icon: <PlusCircledIcon />,
         },
         {
           title: "Penalty List",
           label: "Penalty List",
           href: "/dash/penalties",
-          parentKey: "Penalty Configuration",
+          parentKey: "Configure Penalties",
           icon: <CircleIcon />,
         },
       ],
@@ -111,15 +111,15 @@ export const SidebarRoutes = () => {
         {
           title: "Issue New Penalty",
           label: "Issue New Penalty",
-          href: "/dash/projects/new",
-          parentKey: "Projects",
+          href: "/dash/payments/new",
+          parentKey: "Payments",
           icon: <PlusCircledIcon />,
         },
         {
           title: "Penalty List",
           label: "Penalty List",
-          href: "/dash/projects",
-          parentKey: "Projects",
+          href: "/dash/payments",
+          parentKey: "Payments",
           icon: <CircleIcon />,
         },
       ],

@@ -30,7 +30,7 @@ const AccordionTrigger = React.forwardRef<
       ref={ref}
       className={cn(
         AccordionTriggerAdditionalStyle(),
-        "flex w-full items-center justify-between py-4 text-sm font-medium transition-all hover:none [&[data-state=open]>.accordion-chevron]:rotate-180",
+        "flex w-full items-center justify-between py-4 text-sm font-medium transition-all hover:none [&[data-state=open]>svg]:rotate-180",
         className
       )}
       {...props}

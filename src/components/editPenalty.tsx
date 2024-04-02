@@ -22,7 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormValues, ParsedInputs } from "./penaltyForm";
+import {
+  FormValues,
+  ParsedInputs,
+} from "../features/payments/components/penaltyForm";
 
 interface PenaltyItemProps {
   penalty: Omit<PenaltyConfig, "_id"> & { finalAmount: number };

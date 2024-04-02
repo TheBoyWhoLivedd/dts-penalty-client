@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { FormHeading } from "./ui/FormHeading";
+import { FormHeading } from "../../../components/ui/FormHeading";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -9,14 +9,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { toast } from "./ui/use-toast";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import AddPenalty from "./addPenalty";
-import PenaltyItem from "./editPenalty";
+} from "../../../components/ui/form";
+import { toast } from "../../../components/ui/use-toast";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import AddPenalty from "../../../components/addPenalty";
+import PenaltyItem from "../../../components/editPenalty";
 import { useState } from "react";
-import { Textarea } from "./ui/textarea";
+import { Textarea } from "../../../components/ui/textarea";
+import { useSelector } from "react-redux";
+import { selectCurrentToken } from "@/features/auth/authSlice";
+import useAuth from "@/hooks/useAuth";
+import { Cross2Icon, ReloadIcon } from "@radix-ui/react-icons";
 
 export type FormValues = {
   [key: string]: string;
@@ -60,11 +64,18 @@ const FormSchema = z.object({
     .refine((value) => (value.match(/\S+/g) || []).length >= 8, {
       message: "Description must contain at least 8 words.",
     }),
+  attachments: z.array(z.string()).optional(),
 });
 interface PenaltyFormProps {
   data: PenaltyConfig[];
 }
 export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3500";
+  const token = useSelector(selectCurrentToken);
+  const { userId } = useAuth();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
@@ -91,16 +102,90 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
     form.setValue("penalties", newPenalties);
   };
 
+  const handleUploadClick = async () => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      // console.log("selectedFiles", selectedFiles);
+      selectedFiles.forEach((file) => {
+        formData.append("file", file);
+      });
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3500";
+      const response = await fetch(`${apiUrl}/upload`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const newFileInfos = data.results.map(
+        (result: { url: string; originalName: string }) => result.url
+      );
+      form.setValue("attachments", [
+        ...(form.getValues("attachments") || []),
+        ...newFileInfos,
+      ]);
+      setSelectedFiles([]);
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "data" in error) {
+        const errorResponse = error as ErrorResponse;
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: `Error: ${errorResponse.data.message}`,
+        });
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(JSON.stringify(data));
+    console.log(JSON.stringify({ ...data, userId }));
     toast({
       title: "You submitted the following values:",
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+          <code className="text-white">
+            {JSON.stringify({ ...data, userId }, null, 2)}
+          </code>
         </pre>
       ),
     });
+    fetch(`${apiUrl}/payments`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+      body: JSON.stringify({ ...data, userId }),
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        console.log("Received blob size:", blob.size);
+
+        const pdfUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = pdfUrl;
+        link.setAttribute("download", "payment-record.pdf");
+        document.body.appendChild(link);
+        link.click();
+
+        window.URL.revokeObjectURL(pdfUrl);
+        document.body.removeChild(link);
+      })
+      .catch((error) => {
+        console.error("Error generating report", error);
+        alert("Could not generate report");
+      });
   }
 
   //dynamic form handlers  and logic
@@ -117,10 +202,14 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
   };
 
   const penalties = form.watch("penalties");
+  const images = form.watch("attachments");
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="p-2 md:p-5 lg:px-25 bg-background rounded-md"
+      >
         <FormHeading title="Tax-Payer Details" />
         <div className="md:grid md:grid-cols-2 gap-6 pt-2">
           <FormField
@@ -207,7 +296,87 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
           formValues={formValues}
           handleCustomInputChange={handleCustomInputChange}
         />
-        <FormHeading title="Penalty Description" />
+        <FormHeading title="Attachments (Optional)" />
+        {images && images.length > 0 && (
+          <div>
+            <div className="flex flex-wrap mt-2 gap-4">
+              {images.map((image, index) => (
+                <div key={index} className="w-32 h-32 relative group">
+                  <img
+                    src={image}
+                    alt={`Uploaded #${index + 1}`}
+                    className="w-full h-full object-cover rounded-lg shadow-lg transition-all duration-200 ease-in-out transform group-hover:opacity-50"
+                  />
+
+                  <button
+                    type="button"
+                    className="absolute inset-0 m-auto w-10 h-10 bg-red-300 rounded-full text-white opacity-0 group-hover:opacity-100 hidden md:flex items-center justify-center transition-opacity duration-150 ease-in-out"
+                    onClick={() => {
+                      const newImages = images.filter((_, i) => i !== index);
+                      form.setValue("attachments", newImages);
+                    }}
+                  >
+                    <Cross2Icon />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="absolute right-2 top-2 w-6 h-6 bg-red-300 rounded-full text-white flex items-center justify-center md:hidden"
+                    onClick={() => {
+                      const newImages = images.filter((_, i) => i !== index);
+                      form.setValue("attachments", newImages);
+                    }}
+                  >
+                    <Cross2Icon />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="flex flex-row justify-between items-end gap-2">
+          <div className="flex-grow">
+            <FormField
+              control={form.control}
+              name="attachments"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Upload Documents</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          setSelectedFiles(Array.from(e.target.files));
+                        }
+                      }}
+                    />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              disabled={!selectedFiles.length || uploading}
+              onClick={handleUploadClick}
+            >
+              {uploading ? (
+                <ReloadIcon className="mr-2 w-4 h-4 animate-spin" />
+              ) : null}
+              {uploading ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
+        </div>
+
+        <FormHeading title="Officer's Remarks" />
         <FormField
           control={form.control}
           name="description"
@@ -229,7 +398,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
           )}
         />
 
-        <Button className="mt-2" type="submit">
+        <Button disabled={uploading} className="mt-2" type="submit">
           Submit
         </Button>
       </form>

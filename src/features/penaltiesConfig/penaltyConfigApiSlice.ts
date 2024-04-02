@@ -12,24 +12,28 @@ const initialState = penaltiesAdapter.getInitialState();
 
 export const penaltiesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getPenalties: builder.query<EntityState<PenaltyConfig, string>, void>({
-      query: () => "/penalties",
-      transformResponse: (responseData: PenaltyConfig[]) => {
-        const loadedPenalties = responseData.map((penalty) => {
-          penalty.id = penalty._id; 
-          return penalty;
-        });
-        return penaltiesAdapter.setAll(initialState, loadedPenalties);
-      },
-      providesTags: (result: EntityState<PenaltyConfig, string> | undefined) =>
-        result
-          ? [
-              { type: "Penalty", id: "LIST" },
-              ...result.ids.map((id) => ({ type: "Penalty" as const, id })),
-            ]
-          : [{ type: "Penalty", id: "LIST" }],
-    }),
-    addNewPenalty: builder.mutation({
+    getPenaltiesConfig: builder.query<EntityState<PenaltyConfig, string>, void>(
+      {
+        query: () => "/penalties",
+        transformResponse: (responseData: PenaltyConfig[]) => {
+          const loadedPenalties = responseData.map((penalty) => {
+            penalty.id = penalty._id;
+            return penalty;
+          });
+          return penaltiesAdapter.setAll(initialState, loadedPenalties);
+        },
+        providesTags: (
+          result: EntityState<PenaltyConfig, string> | undefined
+        ) =>
+          result
+            ? [
+                { type: "Penalty", id: "LIST" },
+                ...result.ids.map((id) => ({ type: "Penalty" as const, id })),
+              ]
+            : [{ type: "Penalty", id: "LIST" }],
+      }
+    ),
+    addNewPenaltyConfig: builder.mutation({
       query: (penaltyData) => ({
         url: "/penalties",
         method: "POST",
@@ -37,7 +41,7 @@ export const penaltiesApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Penalty", id: "LIST" }],
     }),
-    updatePenalty: builder.mutation({
+    updatePenaltyConfig: builder.mutation({
       query: ({ id, ...penaltyData }) => ({
         url: `/penalties/${id}`,
         method: "PATCH",
@@ -45,8 +49,8 @@ export const penaltiesApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Penalty", id: "LIST" }],
     }),
-    deletePenalty: builder.mutation({
-      query: (id) => ({
+    deletePenaltyConfig: builder.mutation({
+      query: ({ id }) => ({
         url: `/penalties/${id}`,
         method: "DELETE",
       }),
@@ -56,29 +60,25 @@ export const penaltiesApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
-  useGetPenaltiesQuery,
-  useAddNewPenaltyMutation,
-  useUpdatePenaltyMutation,
-  useDeletePenaltyMutation,
+  useGetPenaltiesConfigQuery,
+  useAddNewPenaltyConfigMutation,
+  useUpdatePenaltyConfigMutation,
+  useDeletePenaltyConfigMutation,
 } = penaltiesApiSlice;
 
-
-
-
 export const selectPenaltiesResult =
-  penaltiesApiSlice.endpoints.getPenalties.select();
+  penaltiesApiSlice.endpoints.getPenaltiesConfig.select();
 
 // creates memoized selector
 const selectPenaltiesData = createSelector(
   selectPenaltiesResult,
-  (penaltiesResult) => penaltiesResult.data 
+  (penaltiesResult) => penaltiesResult.data
 );
 
 export const {
   selectAll: selectAllPenalties,
   selectById: selectPenaltyById,
   selectIds: selectPenaltyIds,
-
 } = penaltiesAdapter.getSelectors(
   (state: RootState) => selectPenaltiesData(state) ?? initialState
 );

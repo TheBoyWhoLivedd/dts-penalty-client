@@ -15,7 +15,11 @@ const EditUser = () => {
 
   if (!user) return <p>Loading...</p>;
 
-  const content = <UserForm initialData={user} />;
+  const content = (
+    <div className="rounded-[0.5rem] bg-background shadow-md md:shadow-l p-8">
+      <UserForm initialData={user} />;
+    </div>
+  );
 
   return content;
 };

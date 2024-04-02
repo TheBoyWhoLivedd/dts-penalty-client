@@ -24,10 +24,11 @@ import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
 import { CustomInputsConfig } from "./customInputsConfig";
 import {
-  useAddNewPenaltyMutation,
-  useUpdatePenaltyMutation,
-} from "../penaltyApiSlice";
+  useAddNewPenaltyConfigMutation,
+  useUpdatePenaltyConfigMutation,
+} from "../penaltyConfigApiSlice";
 import { useNavigate, useParams } from "react-router-dom";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 const OptionConfigSchema = z.object({
   label: z.string(),
@@ -70,24 +71,14 @@ interface PenaltyConfigFormProps {
 const PenaltyConfigForm: React.FC<PenaltyConfigFormProps> = ({
   initialData,
 }) => {
-  const [
-    addNewPenalty,
-    // { isLoading, isSuccess, isError, error }
-  ] = useAddNewPenaltyMutation();
+  const [addNewPenaltyConfig, { isLoading }] = useAddNewPenaltyConfigMutation();
 
-  const [
-    updatePenalty,
-    // {
-    //   isLoading: isUpdateLoading,
-    //   isSuccess: isUpdateSuccess,
-    //   isError: isUpdateError,
-    //   error: updateError,
-    // },
-  ] = useUpdatePenaltyMutation();
+  const [updatePenaltyConfig, { isLoading: isUpdateLoading }] =
+    useUpdatePenaltyConfigMutation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(PenaltyConfigSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       penaltyTitle: "",
       penaltySection: "",
       fixed: false,
@@ -128,7 +119,7 @@ const PenaltyConfigForm: React.FC<PenaltyConfigFormProps> = ({
     console.log(data);
     if (!initialData) {
       try {
-        const response = await addNewPenalty({
+        const response = await addNewPenaltyConfig({
           ...data,
           // If currencyPoints is provided, don't send currencyPointsValue from the form
           // It should be calculated server-side or within the mutation if needed
@@ -154,7 +145,7 @@ const PenaltyConfigForm: React.FC<PenaltyConfigFormProps> = ({
     } else {
       console.log("Data for edit", data);
       try {
-        const updateResponse = await updatePenalty({
+        const updateResponse = await updatePenaltyConfig({
           id: params.id, // Ensure `params` is available in this context or passed correctly
           ...data,
           // If currencyPoints is provided during update, calculate currencyPointsValue
@@ -186,7 +177,7 @@ const PenaltyConfigForm: React.FC<PenaltyConfigFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="rounded-[0.5rem] bg-background shadow-md md:shadow-l p-8">
         <FormHeading title="Category and Tax Type" />
         <div className="md:grid md:grid-cols-2 gap-6 pt-2">
           <FormField
@@ -458,7 +449,14 @@ const PenaltyConfigForm: React.FC<PenaltyConfigFormProps> = ({
             )}
           />
         </div>
-        <Button className="mt-2" type="submit">
+        <Button
+          className="mt-2"
+          type="submit"
+          disabled={isLoading || isUpdateLoading}
+        >
+          {isLoading || isUpdateLoading ? (
+            <ReloadIcon className="mr-2 w-4 h-4 animate-spin" />
+          ) : null}
           Submit
         </Button>
       </form>

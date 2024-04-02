@@ -59,3 +59,29 @@ type OptionConfig = {
   label: string;
   value: string;
 };
+
+interface IssuedPenalty {
+  id: string;
+  penaltyTitle: string;
+  penaltySection: string;
+  category: string;
+  comparative: boolean;
+  fixed: boolean;
+  doubleTax: boolean;
+  finalAmount: number;
+}
+
+interface PaymentConfig {
+  id: string;
+  _id: string;
+  tin: string;
+  nin: string;
+  name: string;
+  penalties: IssuedPenalty[];
+  description: string;
+  totalAmount: number;
+  prn: string;
+  issuedBy: string;
+  issuedAt: Date;
+  attachments?: string[];
+}

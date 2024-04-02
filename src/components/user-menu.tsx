@@ -49,7 +49,7 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center">
         <DropdownMenuItem>
-          <Link to="/dashboard/settings">Settings</Link>
+          <Link to="/dash/settings">Settings</Link>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {

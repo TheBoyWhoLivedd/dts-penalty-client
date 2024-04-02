@@ -10,7 +10,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ allowedRoles }) => {
   const location = useLocation();
   const { status } = useAuth();
 
-  // console.log("status", status);
+  console.log("status", status);
 
   const isAllowed = allowedRoles.includes(status);
   // console.log("isAllowed", isAllowed);

@@ -9,21 +9,7 @@ export type UserColumn = {
 };
 
 export const UserColumns: ColumnDef<UserColumn>[] = [
-  // {
-  //   accessorKey: "imageUrl",
-  //   header: "Image",
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center justify-start">
-  //       <Image
-  //         src={row.original.imageUrl}
-  //         alt={row.original.name}
-  //         className="h-12 w-12 rounded-full"
-  //         width={48}
-  //         height={48}
-  //       />
-  //     </div>
-  //   ),
-  // },
+
   {
     accessorKey: "name",
     header: "Name",

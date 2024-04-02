@@ -9,22 +9,28 @@ interface PenaltysClientProps {
   data: PenaltyColumn[];
 }
 
-export const PenaltiesConfigClient: React.FC<PenaltysClientProps> = ({ data }) => {
+export const PenaltiesConfigClient: React.FC<PenaltysClientProps> = ({
+  data,
+}) => {
   const navigate = useNavigate();
 
   return (
-    <>
-      <div className="flex items-center justify-between">
+    <div className="overflow-hidden rounded-[0.5rem] bg-background shadow-md md:shadow-l p-8">
+      <div className="flex items-center justify-between ">
         <Heading
           title={`Penalties (${data.length})`}
-          description="Manage your Penaltys"
+          description="Manage your Penalties"
         />
         <Button onClick={() => navigate("/dash/penalties/new")}>
           <PlusIcon className="mr-2 h-4 w-4" /> Add New
         </Button>
       </div>
       <Separator />
-      <DataTable searchKey="penaltyTitle" columns={PenaltyColumns} data={data} />
-    </>
+      <DataTable
+        searchKey="penaltyTitle"
+        columns={PenaltyColumns}
+        data={data}
+      />
+    </div>
   );
 };

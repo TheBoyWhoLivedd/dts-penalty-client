@@ -13,8 +13,8 @@ export const UsersClient: React.FC<UsersClientProps> = ({ data }) => {
   const navigate = useNavigate();
 
   return (
-    <>
-      <div className="flex items-center justify-between">
+    <div className="rounded-[0.5rem] bg-background shadow-md md:shadow-l p-8">
+      <div className="flex items-center justify-between ">
         <Heading
           title={`Users (${data.length})`}
           description="Manage your Users"
@@ -25,6 +25,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({ data }) => {
       </div>
       <Separator />
       <DataTable searchKey="name" columns={UserColumns} data={data} />
-    </>
+    </div>
   );
 };

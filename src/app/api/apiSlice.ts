@@ -45,7 +45,7 @@ const baseQueryWithReauth = async (
   api: BaseQueryApi,
   extraOptions: object
 ) => {
-  console.log(args) // request url, method, body
+  console.log(args); // request url, method, body
   // console.log(api) // signal, dispatch, getState()
   // console.log(extraOptions) //custom like {shout: true}
 
@@ -85,7 +85,7 @@ const baseQueryWithReauth = async (
 
 export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Note", "User", "Project", "Penalty"],
+  tagTypes: ["Note", "User", "Project", "Penalty", "Payment"],
   endpoints: (builder) => ({
     exampleEndpoint: builder.query({
       query: () => `/example`,

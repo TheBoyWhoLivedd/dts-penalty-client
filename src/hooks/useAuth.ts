@@ -30,6 +30,8 @@ const useAuth = () => {
       status = "Admin";
     } else if (isAdmin) {
       status = "Supervisor";
+    }else{
+      status = "Employee";
     }
 
     // console.log("Decoded", decodedUserInfo);
