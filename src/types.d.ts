@@ -1,3 +1,14 @@
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  createdAt: string;
+  updatedAt: string;
+  password_reset_token?: string | null;
+}
+
 type InputOption = {
   label: string;
   value: string;
@@ -85,3 +96,5 @@ interface PaymentConfig {
   issuedAt: Date;
   attachments?: string[];
 }
+
+

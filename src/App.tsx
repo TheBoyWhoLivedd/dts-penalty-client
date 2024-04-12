@@ -19,6 +19,7 @@ import ForgotPassword from "./features/auth/ForgotPassword";
 import ChangePassword from "./features/auth/ChangePassword";
 import PaymentsList from "./features/payments/PaymentsList";
 import PaymentDetails from "./features/payments/PaymentDetails";
+import { PaymentsClient } from "./features/payments/components/client";
 
 function App() {
   return (
@@ -63,7 +64,7 @@ function App() {
                 <Route index element={<ChangePassword />} />
               </Route>
               <Route path="payments">
-                <Route index element={<PaymentsList />} />
+                <Route index element={<PaymentsClient />} />
                 <Route path=":id" element={<PaymentDetails />} />
                 <Route path="new" element={<IssuePenalty />} />
               </Route>

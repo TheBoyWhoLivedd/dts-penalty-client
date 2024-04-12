@@ -26,6 +26,17 @@ export function UserMenu() {
     }
   };
 
+  const getInitials = (name: string) => {
+    const names = name.split(" ");
+    const initials = names.reduce((acc, curr, index) => {
+      if (index === 0 || index === names.length - 1) {
+        return acc + curr.charAt(0).toUpperCase();
+      }
+      return acc;
+    }, "");
+    return initials;
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,7 +50,9 @@ export function UserMenu() {
               src={session?.user?.avatar as string}
               alt={`${session?.user?.name}'s avatar`}
             /> */}
-            <AvatarFallback delayMs={600}>RA</AvatarFallback>
+            <AvatarFallback delayMs={10}>
+              {getInitials(userName)}
+            </AvatarFallback>
           </Avatar>
           <div className="flex flex-col justify-start">
             <span className="font-medium">{userName}</span>

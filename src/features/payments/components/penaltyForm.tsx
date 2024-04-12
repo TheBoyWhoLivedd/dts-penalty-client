@@ -75,6 +75,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
   const { userId } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -159,6 +160,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
         </pre>
       ),
     });
+    setLoading(true);
     fetch(`${apiUrl}/payments`, {
       headers: {
         "Content-Type": "application/json",
@@ -185,6 +187,9 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
       .catch((error) => {
         console.error("Error generating report", error);
         alert("Could not generate report");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }
 
@@ -398,8 +403,11 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
           )}
         />
 
-        <Button disabled={uploading} className="mt-2" type="submit">
-          Submit
+        <Button disabled={uploading || loading} className="mt-2" type="submit">
+          {loading ? (
+            <ReloadIcon className="mr-2 w-4 h-4 animate-spin" />
+          ) : null}
+          {loading ? "Submitting..." : "Submit"}
         </Button>
       </form>
     </Form>

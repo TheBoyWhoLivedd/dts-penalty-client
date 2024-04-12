@@ -11,18 +11,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 
-import { PaymentColumn } from "./columns";
+
 import {
   DotsHorizontalIcon,
   Pencil1Icon,
  
 } from "@radix-ui/react-icons";
+import { PaymentColumn } from "./columns";
 
 interface CellActionProps {
   data: PaymentColumn;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
+
+  // console.log("Data in CellAction", data);
   // const router = useRouter();
   // const params = useParams();
   const navigate = useNavigate();
@@ -50,7 +53,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           </DropdownMenuItem> */}
           <DropdownMenuItem
             onClick={() => {
-              navigate(`/dash/payments/${data.id}`);
+              navigate(`/dash/payments/${data._id}`);
             }}
           >
             <Pencil1Icon className="mr-2 h-4 w-4" /> View Details
