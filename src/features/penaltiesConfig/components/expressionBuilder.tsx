@@ -44,9 +44,66 @@ export const ExpressionBuilder: React.FC<ExpressionBuilderProps> = ({
     }, 0);
   };
 
+  // const isValidExpression = (expression: string): boolean => {
+  //   console.log("Called");
+
+  //   const stack: string[] = [];
+  //   for (const char of expression) {
+  //     if (char === "(") {
+  //       stack.push(char);
+  //     } else if (char === ")") {
+  //       if (!stack.pop()) {
+  //         return false;
+  //       }
+  //     }
+  //   }
+  //   if (stack.length > 0) return false;
+
+  //   const varsPattern = variables.map((v) => `\\b${v.variable}\\b`).join("|");
+  //   const validExpressionPattern = new RegExp(
+  //     `^\\s*((${varsPattern}|\\d+(\\.\\d+)?|\\s|[+\\-*/()]|MAX\\(([^)]+)\\))+\\s*)$`,
+  //     "i"
+  //   );
+
+  //   return validExpressionPattern.test(expression);
+  // };
+
+  // const isValidExpression = (expression: string): boolean => {
+  //   console.log("Called");
+
+  //   // Properly check for balanced parentheses
+  //   const stack: string[] = [];
+  //   for (const char of expression) {
+  //     if (char === "(") {
+  //       stack.push(char);
+  //     } else if (char === ")") {
+  //       if (!stack.pop()) {
+  //         return false;
+  //       }
+  //     }
+  //   }
+  //   if (stack.length > 0) return false;
+
+  //   // Regex to match variables and basic numerics accurately
+  //   const varsPattern = variables.map((v) => `\\b${v.variable}\\b`).join("|");
+  //   const numberPattern = "\\d+(\\.\\d+)?"; // Matches integers and floats
+
+  //   // Regex for functions like MAX, ensuring proper argument forms
+  //   const functionPattern = `MAX\\(\\s*(${varsPattern}|${numberPattern})\\s*,\\s*(${varsPattern}|${numberPattern})\\s*\\)`;
+
+  //   // Combining all parts into one regex pattern
+  //   const validExpressionPattern = new RegExp(
+  //     `^\\s*((${varsPattern}|${numberPattern}|\\s|[+\\-*/()]|${functionPattern})+)\\s*$`,
+  //     "i"
+  //   );
+
+  //   return validExpressionPattern.test(expression);
+  // };
+
   const isValidExpression = (expression: string): boolean => {
     console.log("Called");
 
+    // Properly check for balanced parentheses
     const stack: string[] = [];
     for (const char of expression) {
       if (char === "(") {
@@ -59,9 +116,17 @@ export const ExpressionBuilder: React.FC<ExpressionBuilderProps> = ({
     }
     if (stack.length > 0) return false;
 
+    // Regex to match variables and basic numerics accurately
     const varsPattern = variables.map((v) => `\\b${v.variable}\\b`).join("|");
+    const numberPattern = "\\d+(\\.\\d+)?"; // Matches integers and floats
+
+    // Regex for functions like MAX, ensuring proper argument forms
+    const functionPattern = `MAX\\(\\s*(${varsPattern}|${numberPattern})\\s*,\\s*(${varsPattern}|${numberPattern})\\s*\\)`;
+
+    // Combining all parts into one regex pattern
+    // Ensuring proper sequence and avoiding trailing operators
     const validExpressionPattern = new RegExp(
-      `^\\s*((${varsPattern}|\\d+(\\.\\d+)?|\\s|[+\\-*/()]|MAX\\(([^)]+)\\))+\\s*)$`,
+      `^\\s*(${varsPattern}|${numberPattern}|${functionPattern}|\\s|\\b\\(+\\b|\\b\\)+\\b)([+\\-*/]\\s*(${varsPattern}|${numberPattern}|${functionPattern}|\\s|\\b\\(+\\b|\\b\\)+\\b))*$`,
       "i"
     );
 

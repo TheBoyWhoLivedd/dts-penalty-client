@@ -17,7 +17,7 @@ import EditPenaltyConfig from "./features/penaltiesConfig/EditPenaltyConfig";
 import ResetPassword from "./features/auth/ResetPassword";
 import ForgotPassword from "./features/auth/ForgotPassword";
 import ChangePassword from "./features/auth/ChangePassword";
-import PaymentsList from "./features/payments/PaymentsList";
+// import PaymentsList from "./features/payments/PaymentsList";
 import PaymentDetails from "./features/payments/PaymentDetails";
 import { PaymentsClient } from "./features/payments/components/client";
 

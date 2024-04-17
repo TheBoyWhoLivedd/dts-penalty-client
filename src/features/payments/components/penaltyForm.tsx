@@ -18,9 +18,10 @@ import PenaltyItem from "../../../components/editPenalty";
 import { useState } from "react";
 import { Textarea } from "../../../components/ui/textarea";
 import { useSelector } from "react-redux";
-import { selectCurrentToken } from "@/features/auth/authSlice";
+import { selectCurrentToken, setCredentials } from "@/features/auth/authSlice";
 import useAuth from "@/hooks/useAuth";
 import { Cross2Icon, ReloadIcon } from "@radix-ui/react-icons";
+import { useDispatch } from "react-redux";
 
 export type FormValues = {
   [key: string]: string;
@@ -76,10 +77,21 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formValues, setFormValues] = useState<FormValues>({});
+  const dispatch = useDispatch();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
+
+
+  // Update dynamic form values
+  const handleCustomInputChange = (variable: string, value: string) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [variable]: value,
+    }));
+  };
 
   const handleAddPenalty = (
     penalty: PenaltyConfig & { finalAmount: number }
@@ -148,33 +160,26 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
     }
   };
 
+
   function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(JSON.stringify({ ...data, userId }));
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">
-            {JSON.stringify({ ...data, userId }, null, 2)}
-          </code>
-        </pre>
-      ),
-    });
+    // toast({
+    //   title: "You submitted the following values:",
+    //   description: (
+    //     <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+    //       <code className="text-white">
+    //         {JSON.stringify({ ...data, userId }, null, 2)}
+    //       </code>
+    //     </pre>
+    //   ),
+    // });
+
     setLoading(true);
-    fetch(`${apiUrl}/payments`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      method: "POST",
-      body: JSON.stringify({ ...data, userId }),
-    })
-      .then((response) => response.blob())
+    sendPaymentRequest(data)
       .then((blob) => {
         console.log("Received blob size:", blob.size);
 
         const pdfUrl = window.URL.createObjectURL(blob);
-
         const link = document.createElement("a");
         link.href = pdfUrl;
         link.setAttribute("download", "payment-record.pdf");
@@ -186,25 +191,65 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
       })
       .catch((error) => {
         console.error("Error generating report", error);
-        alert("Could not generate report");
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: `Error: ${error.message}`,
+        });
+        // alert("Could not generate report");
       })
       .finally(() => {
         setLoading(false);
       });
   }
 
-  //dynamic form handlers  and logic
+  async function sendPaymentRequest(data: z.infer<typeof FormSchema>) {
+    const headers = new Headers({
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, 
+    });
 
-  // State for dynamic form values
-  const [formValues, setFormValues] = useState<FormValues>({});
+    const requestConfig: RequestInit = {
+        headers: headers,
+        method: "POST",
+        body: JSON.stringify({ ...data, userId }),
+        credentials: "include",
+    };
 
-  // Update dynamic form values
-  const handleCustomInputChange = (variable: string, value: string) => {
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [variable]: value,
-    }));
-  };
+    let response = await fetch(`${apiUrl}/payments`, requestConfig);
+
+    if (response.status === 403) {
+        console.log("Token expired, refreshing...");
+        const refreshResponse = await fetch(`${apiUrl}/auth/refresh`, {
+            method: "GET",
+            headers: new Headers({
+                "Content-Type": "application/json",
+            }),
+            credentials: "include"
+        });
+
+        if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+
+            dispatch(setCredentials({ accessToken: refreshData.accessToken }));
+
+            headers.set("Authorization", `Bearer ${refreshData.accessToken}`)
+            // Retry the request with new token
+            response = await fetch(`${apiUrl}/payments`, requestConfig);
+        } else {
+            throw new Error("Session expired. Please login again.");
+        }
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to process payment.");
+    }
+
+    return response.blob();
+}
+
+
 
   const penalties = form.watch("penalties");
   const images = form.watch("attachments");
