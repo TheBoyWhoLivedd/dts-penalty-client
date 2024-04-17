@@ -29,9 +29,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
   name: z.string().min(1, {
-    message: "Name must be atleast 1 character",
+    message: "Name must be at least 1 character",
   }),
-  email: z.string().email({ message: "Invalid Email Address" }),
+  email: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .regex(/@ura\.go\.ug$/, {
+      message: "Email must end with @ura.go.ug",
+    }),
   password: z.string().optional(),
   isAdmin: z.boolean().default(false).optional(),
   isSuperAdmin: z.boolean().default(false).optional(),

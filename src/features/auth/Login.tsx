@@ -92,8 +92,8 @@ export default function Login() {
         >
           <Card className="mx-auto max-w-3xl">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Employee Login</CardTitle>
-              <CardDescription>Enter Credentials</CardDescription>
+              <CardTitle className="text-2xl">EFRIS-DTS Penalties</CardTitle>
+              <CardDescription>Enter Credentials to login</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="grid gap-2">

@@ -48,13 +48,7 @@ const FormSchema = z.object({
   tin: z.string().refine((value) => /^\d{10}$/.test(value), {
     message: "TIN must be a 10-digit number without special characters.",
   }),
-  nin: z
-    .string()
-    .min(8)
-    .regex(/^[a-zA-Z0-9]+$/, {
-      message:
-        "NIN/BRN must be an alphanumeric value and at least 8 characters long.",
-    }),
+  nin: z.string().optional(),
   name: z.string().min(1, "Taxpayer name is required."),
   penalties: z.array(PenaltySchema),
   description: z
@@ -82,8 +76,12 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      tin: "",
+      nin: "",
+      name: "",
+    },
   });
-
 
   // Update dynamic form values
   const handleCustomInputChange = (variable: string, value: string) => {
@@ -160,7 +158,6 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
     }
   };
 
-
   function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(JSON.stringify({ ...data, userId }));
     // toast({
@@ -205,51 +202,99 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
 
   async function sendPaymentRequest(data: z.infer<typeof FormSchema>) {
     const headers = new Headers({
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, 
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     });
 
     const requestConfig: RequestInit = {
-        headers: headers,
-        method: "POST",
-        body: JSON.stringify({ ...data, userId }),
-        credentials: "include",
+      headers: headers,
+      method: "POST",
+      body: JSON.stringify({ ...data, userId }),
+      credentials: "include",
     };
 
     let response = await fetch(`${apiUrl}/payments`, requestConfig);
 
     if (response.status === 403) {
-        console.log("Token expired, refreshing...");
-        const refreshResponse = await fetch(`${apiUrl}/auth/refresh`, {
-            method: "GET",
-            headers: new Headers({
-                "Content-Type": "application/json",
-            }),
-            credentials: "include"
-        });
+      console.log("Token expired, refreshing...");
+      const refreshResponse = await fetch(`${apiUrl}/auth/refresh`, {
+        method: "GET",
+        headers: new Headers({
+          "Content-Type": "application/json",
+        }),
+        credentials: "include",
+      });
 
-        if (refreshResponse.ok) {
-            const refreshData = await refreshResponse.json();
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
 
-            dispatch(setCredentials({ accessToken: refreshData.accessToken }));
+        dispatch(setCredentials({ accessToken: refreshData.accessToken }));
 
-            headers.set("Authorization", `Bearer ${refreshData.accessToken}`)
-            // Retry the request with new token
-            response = await fetch(`${apiUrl}/payments`, requestConfig);
-        } else {
-            throw new Error("Session expired. Please login again.");
-        }
+        headers.set("Authorization", `Bearer ${refreshData.accessToken}`);
+        // Retry the request with new token
+        response = await fetch(`${apiUrl}/payments`, requestConfig);
+      } else {
+        throw new Error("Session expired. Please login again.");
+      }
     }
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to process payment.");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to process payment.");
     }
 
     return response.blob();
-}
+  }
 
+  const fetchTaxpayerDetails = async (tin: string) => {
+    console.log("Fetching Tax Payer Details");
+    if (!tin) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Input",
+        description: "Please enter a valid TIN.",
+      });
+      return;
+    }
 
+    try {
+      const response = await fetch(`${apiUrl}/payments/getTinDetails/${tin}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch taxpayer details");
+      }
+      const result = await response.json();
+      if (result.statusCode === 200) {
+        const details = result.data;
+        // Check if the data has an error code or empty values that suggest invalid TIN
+        if (details.ErrorCode === "E004" || details.TaxPayerId === "") {
+          toast({
+            variant: "destructive",
+            title: "Invalid TIN",
+            description: details.ErrorDesc || "The provided TIN is invalid.",
+          });
+          form.reset({ nin: "", name: "" });
+        } else {
+          form.setValue("nin", details.Nin || details.Brn || "");
+          form.setValue("name", details.TaxPayerName || "");
+        }
+      } else {
+        throw new Error(result.responseMessage || "An unknown error occurred");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("Error fetching taxpayer details:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to fetch taxpayer details",
+        description: error.message || "Network error",
+      });
+    }
+  };
 
   const penalties = form.watch("penalties");
   const images = form.watch("attachments");
@@ -275,6 +320,9 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
                         // disabled={loading}
                         placeholder="Enter TIN"
                         {...field}
+                        onBlur={() =>
+                          fetchTaxpayerDetails(form.getValues("tin"))
+                        }
                       />
                     </FormControl>
                   </div>
