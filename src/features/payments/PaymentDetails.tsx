@@ -21,7 +21,7 @@ const PaymentDetails = () => {
 
   // console.log("flatData", flatData);
 
-  const payment = flatData.find(p => p._id === id);
+  const payment = flatData.find((p) => p._id === id);
 
   if (!payment) return <p>Payment Not Found...</p>;
 

@@ -136,6 +136,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
       }
 
       const data = await response.json();
+      console.log("Uploaded Files", data);
       const newFileInfos = data.results.map(
         (result: { url: string; originalName: string }) => result.url
       );
@@ -439,7 +440,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
               name="attachments"
               render={() => (
                 <FormItem>
-                  <FormLabel>Upload Documents</FormLabel>
+                  <FormLabel>Upload Photo Evidence</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"

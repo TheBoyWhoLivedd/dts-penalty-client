@@ -6,7 +6,6 @@ import {
   keepPreviousData,
   useInfiniteQuery,
   useQuery,
-  // useQueryClient,
 } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSelector } from "react-redux";
@@ -140,8 +139,9 @@ export const PaymentsClient: React.FC = () => {
       initialPageParam: 0,
       getNextPageParam: (_lastGroup, groups) => groups.length,
       refetchOnWindowFocus: false,
+      // refetchOnMount: true,
       placeholderData: keepPreviousData,
-      // staleTime: 60 * 1000, 
+      // staleTime: 60 * 1000,
       // initialData: () => {
       //   // Get the query state
       //   const state = queryClient.getQueryState(["payments"]);
