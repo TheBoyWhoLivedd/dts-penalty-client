@@ -17,9 +17,9 @@ import EditPenaltyConfig from "./features/penaltiesConfig/EditPenaltyConfig";
 import ResetPassword from "./features/auth/ResetPassword";
 import ForgotPassword from "./features/auth/ForgotPassword";
 import ChangePassword from "./features/auth/ChangePassword";
-// import PaymentsList from "./features/payments/PaymentsList";
 import PaymentDetails from "./features/payments/PaymentDetails";
 import { PaymentsClient } from "./features/payments/components/client";
+import FirstTimeLogin from "./components/firstTimeLogin";
 
 function App() {
   return (
@@ -42,6 +42,7 @@ function App() {
             />
           }
         >
+          <Route path="/set-first-password" element={<FirstTimeLogin />} />
           <Route element={<Prefetch />}>
             <Route path="dash" element={<DashLayout />}>
               <Route index element={<Welcome />} />

@@ -9,6 +9,7 @@ interface CustomJwtPayload extends JwtPayload {
     userName: string;
     isAdmin: boolean;
     isSuperAdmin: boolean;
+    hasResetPassword: boolean;
   };
 }
 
@@ -23,20 +24,28 @@ const useAuth = () => {
   }, [token]);
 
   if (decodedUserInfo) {
-    const { userId, userName, isAdmin, isSuperAdmin } = decodedUserInfo;
+    const { userId, userName, isAdmin, isSuperAdmin, hasResetPassword } =
+      decodedUserInfo;
     // Adjusted logic for determining the status
     let status = "Employee";
     if (isSuperAdmin) {
       status = "Admin";
     } else if (isAdmin) {
       status = "Supervisor";
-    }else{
+    } else {
       status = "Employee";
     }
 
     // console.log("Decoded", decodedUserInfo);
 
-    return { userId, userName, status, isAdmin, isSuperAdmin }; // Added isSuperAdmin to the return object for consistency
+    return {
+      userId,
+      userName,
+      status,
+      isAdmin,
+      isSuperAdmin,
+      hasResetPassword,
+    }; // Added isSuperAdmin to the return object for consistency
   }
 
   return {
@@ -44,6 +53,7 @@ const useAuth = () => {
     userName: "",
     isAdmin: false,
     isSuperAdmin: false,
+    hasResetPassword: true,
     status: "",
   };
 };

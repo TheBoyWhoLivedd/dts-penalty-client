@@ -48,6 +48,14 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body: { ...passwordData },
       }),
     }),
+    setFirstPassword: builder.mutation({
+      query: (passwordData) => ({
+        url: "/auth/set-first-password",
+        method: "POST",
+        body: { ...passwordData },
+      }),
+      invalidatesTags: [{ type: "User", id: "LIST" }],
+    }),
   }),
 });
 
@@ -56,4 +64,5 @@ export const {
   useSendLogoutMutation,
   useRefreshMutation,
   useChangePasswordMutation,
+  useSetFirstPasswordMutation,
 } = authApiSlice;
