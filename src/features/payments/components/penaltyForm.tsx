@@ -22,6 +22,7 @@ import { selectCurrentToken, setCredentials } from "@/features/auth/authSlice";
 import useAuth from "@/hooks/useAuth";
 import { Cross2Icon, ReloadIcon } from "@radix-ui/react-icons";
 import { useDispatch } from "react-redux";
+import { toast as Sonner } from "sonner";
 
 export type FormValues = {
   [key: string]: string;
@@ -138,7 +139,8 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
       const data = await response.json();
       console.log("Uploaded Files", data);
       const newFileInfos = data.results.map(
-        (result: { url: string; originalName: string }) => result.url
+        (result: { url: string; originalName: string }) =>
+          `${apiUrl}${result.url}`
       );
       form.setValue("attachments", [
         ...(form.getValues("attachments") || []),
@@ -198,6 +200,8 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
       })
       .finally(() => {
         setLoading(false);
+        setSelectedFiles([]);
+        form.reset();
       });
   }
 
@@ -247,54 +251,111 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
     return response.blob();
   }
 
+  // const fetchTaxpayerDetails = async (tin: string) => {
+  //   console.log("Fetching Tax Payer Details");
+  //   if (!tin) {
+  //     toast({
+  //       variant: "destructive",
+  //       title: "Invalid Input",
+  //       description: "Please enter a valid TIN.",
+  //     });
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await fetch(`${apiUrl}/payments/getTinDetails/${tin}`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch taxpayer details");
+  //     }
+  //     const result = await response.json();
+  //     if (result.statusCode === 200) {
+  //       const details = result.data;
+  //       // Check if the data has an error code or empty values that suggest invalid TIN
+  //       if (details.ErrorCode === "E004" || details.TaxPayerId === "") {
+  //         toast({
+  //           variant: "destructive",
+  //           title: "Invalid TIN",
+  //           description: details.ErrorDesc || "The provided TIN is invalid.",
+  //         });
+  //         form.reset({ nin: "", name: "" });
+  //       } else {
+  //         form.setValue("nin", details.Nin || details.Brn || "");
+  //         form.setValue("name", details.TaxPayerName || "");
+  //       }
+  //     } else {
+  //       throw new Error(result.responseMessage || "An unknown error occurred");
+  //     }
+  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //   } catch (error: any) {
+  //     console.error("Error fetching taxpayer details:", error);
+  //     toast({
+  //       variant: "destructive",
+  //       title: "Failed to fetch taxpayer details",
+  //       description: error.message || "Network error",
+  //     });
+  //   }
+  // };
+
   const fetchTaxpayerDetails = async (tin: string) => {
     console.log("Fetching Tax Payer Details");
     if (!tin) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Input",
-        description: "Please enter a valid TIN.",
+      Sonner.promise(Promise.reject(new Error("Please enter a valid TIN.")), {
+        loading: "Validating TIN...",
+        success: "TIN validated successfully",
+        error: "Please enter a valid TIN",
       });
       return;
     }
 
-    try {
-      const response = await fetch(`${apiUrl}/payments/getTinDetails/${tin}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    Sonner.promise(
+      (async () => {
+        try {
+          const response = await fetch(
+            `${apiUrl}/payments/getTinDetails/${tin}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch taxpayer details");
-      }
-      const result = await response.json();
-      if (result.statusCode === 200) {
-        const details = result.data;
-        // Check if the data has an error code or empty values that suggest invalid TIN
-        if (details.ErrorCode === "E004" || details.TaxPayerId === "") {
-          toast({
-            variant: "destructive",
-            title: "Invalid TIN",
-            description: details.ErrorDesc || "The provided TIN is invalid.",
-          });
-          form.reset({ nin: "", name: "" });
-        } else {
-          form.setValue("nin", details.Nin || details.Brn || "");
-          form.setValue("name", details.TaxPayerName || "");
+          if (!response.ok) {
+            throw new Error("Failed to fetch taxpayer details");
+          }
+          const result = await response.json();
+
+          if (result.statusCode === 200) {
+            const details = result.data;
+            if (details.ErrorCode === "E004" || details.TaxPayerId === "") {
+              throw new Error(
+                details.ErrorDesc || "The provided TIN is invalid."
+              );
+            } else {
+              form.setValue("nin", details.Nin || details.Brn || "");
+              form.setValue("name", details.TaxPayerName || "");
+              return "Taxpayer details fetched successfully";
+            }
+          } else {
+            throw new Error(
+              result.responseMessage || "An unknown error occurred"
+            );
+          }
+        } catch (error) {
+          console.error("Error inside Sonner.promise:", error);
+          throw error; // Rethrow the error to be handled by the error section of Sonner.promise
         }
-      } else {
-        throw new Error(result.responseMessage || "An unknown error occurred");
+      })(),
+      {
+        loading: "Fetching taxpayer details...",
+        success: (message) => message,
+        error: (error) => error.message || "Network error",
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error("Error fetching taxpayer details:", error);
-      toast({
-        variant: "destructive",
-        title: "Failed to fetch taxpayer details",
-        description: error.message || "Network error",
-      });
-    }
+    );
   };
 
   const penalties = form.watch("penalties");
