@@ -31,6 +31,8 @@ interface AddPenaltyProps {
   formValues: FormValues;
   handleCustomInputChange: (variable: string, value: string) => void;
   penalties: PenaltyConfig[];
+  selectedCategory: string;
+  // setSelectedCategory: (category: string) => void;
 }
 
 const AddPenalty: React.FC<AddPenaltyProps> = ({
@@ -38,10 +40,11 @@ const AddPenalty: React.FC<AddPenaltyProps> = ({
   formValues,
   handleCustomInputChange,
   penalties,
+  selectedCategory,
 }) => {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  // const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedPenalty, setSelectedPenalty] = useState<PenaltyConfig | null>(
     null
   );
@@ -103,12 +106,12 @@ const AddPenalty: React.FC<AddPenaltyProps> = ({
   };
 
   // Extract unique categories
-  const categories = useMemo(() => {
-    const uniqueCategories = Array.from(
-      new Set(penalties.map((p) => p.category))
-    );
-    return uniqueCategories.sort();
-  }, [penalties]);
+  // const categories = useMemo(() => {
+  //   const uniqueCategories = Array.from(
+  //     new Set(penalties.map((p) => p.category))
+  //   );
+  //   return uniqueCategories.sort();
+  // }, [penalties]);
 
   // Filter penalties based on the selected category
   const filteredPenalties = useMemo(() => {
@@ -212,12 +215,17 @@ const AddPenalty: React.FC<AddPenaltyProps> = ({
   };
 
   const handleSubmit = () => {
+    if (selectedCategory !== selectedPenalty?.category) {
+      setSelectedPenalty(null);
+      return;
+    }
+
     const finalAmount = calculateFinalAmount();
     console.log("final Amount", finalAmount);
     if (!isNaN(finalAmount) && finalAmount > 0 && selectedPenalty) {
       onAdd({ ...selectedPenalty, finalAmount });
       setSelectedPenalty(null);
-      setSelectedCategory("");
+      // setSelectedCategory("");
       setAmountInput("");
     }
   };
@@ -244,7 +252,7 @@ const AddPenalty: React.FC<AddPenaltyProps> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-6 gap-y-2 md:gap-x-6 pt-2">
-      <div className="md:col-span-2">
+      {/* <div className="md:col-span-2">
         <Select
           onValueChange={(value) => {
             setSelectedCategory(value);
@@ -265,7 +273,7 @@ const AddPenalty: React.FC<AddPenaltyProps> = ({
             </SelectGroup>
           </SelectContent>
         </Select>
-      </div>
+      </div> */}
       {selectedCategory && (
         <div className="md:col-span-3">
           {isDesktop ? (

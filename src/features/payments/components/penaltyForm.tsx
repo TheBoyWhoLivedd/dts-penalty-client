@@ -10,12 +10,20 @@ import {
   FormLabel,
   FormMessage,
 } from "../../../components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "../../../components/ui/use-toast";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import AddPenalty from "../../../components/addPenalty";
 import PenaltyItem from "../../../components/editPenalty";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Textarea } from "../../../components/ui/textarea";
 import { useSelector } from "react-redux";
 import { selectCurrentToken, setCredentials } from "@/features/auth/authSlice";
@@ -51,6 +59,7 @@ const FormSchema = z.object({
   }),
   nin: z.string().optional(),
   name: z.string().min(1, "Taxpayer name is required."),
+  category: z.string().min(1, "Please choose a category"),
   penalties: z.array(PenaltySchema),
   description: z
     .string()
@@ -73,7 +82,14 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formValues, setFormValues] = useState<FormValues>({});
+  // const [selectedCategory, setSelectedCategory] = useState<string>("");
   const dispatch = useDispatch();
+
+  // Extract unique categories
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(new Set(data.map((p) => p.category)));
+    return uniqueCategories.sort();
+  }, [data]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -163,16 +179,16 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(JSON.stringify({ ...data, userId }));
-    // toast({
-    //   title: "You submitted the following values:",
-    //   description: (
-    //     <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-    //       <code className="text-white">
-    //         {JSON.stringify({ ...data, userId }, null, 2)}
-    //       </code>
-    //     </pre>
-    //   ),
-    // });
+    toast({
+      title: "You submitted the following values:",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">
+            {JSON.stringify({ ...data, userId }, null, 2)}
+          </code>
+        </pre>
+      ),
+    });
 
     setLoading(true);
     sendPaymentRequest(data)
@@ -360,6 +376,7 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
 
   const penalties = form.watch("penalties");
   const images = form.watch("attachments");
+  const selectedCategory = form.watch("category");
 
   return (
     <Form {...form}>
@@ -436,7 +453,42 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
             )}
           />
         </div>
-        <FormHeading title="Penalty Details" />
+        <FormHeading title="Penalty Category" />
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-y-2 md:gap-x-6 pt-2">
+          <div className="md:col-span-2">
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      // setSelectedCategory(value);
+                      form.setValue("category", value);
+                      form.setValue("penalties", []);
+                    }}
+                    value={selectedCategory}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Category to add Penalty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        {selectedCategory && <FormHeading title="Penalty Details" />}
         {penalties &&
           penalties.map((penalty, index) => (
             <PenaltyItem
@@ -448,6 +500,8 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
               onDelete={handleDeletePenalty}
               formValues={formValues}
               handleCustomInputChange={handleCustomInputChange}
+              selectedCategory={selectedCategory}
+              // setSelectedCategory={setSelectedCategory}
             />
           ))}
         <AddPenalty
@@ -455,6 +509,8 @@ export const PenaltyForm: React.FC<PenaltyFormProps> = ({ data }) => {
           onAdd={handleAddPenalty}
           formValues={formValues}
           handleCustomInputChange={handleCustomInputChange}
+          selectedCategory={selectedCategory}
+          // setSelectedCategory={setSelectedCategory}
         />
         <FormHeading title="Attachments (Optional)" />
         {images && images.length > 0 && (

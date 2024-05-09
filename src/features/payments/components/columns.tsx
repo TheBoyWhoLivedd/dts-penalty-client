@@ -7,6 +7,7 @@ export type PaymentColumn = {
   tin: string;
   nin: string;
   name: string;
+  category: string;
   penalties: IssuedPenalty[];
   description: string;
   totalAmount: string;
@@ -46,6 +47,17 @@ export const PaymentColumns: ColumnDef<PaymentColumn>[] = [
     accessorKey: "nin",
     header: "NIN",
     size: 200,
+  },
+  {
+    accessorKey: "category",
+    header: "Category",
+    size: 200,
+  },
+  {
+    // accessorFn: row => row.name,
+    accessorKey: "name",
+    header: "Tax Payer Name",
+    size: 400,
   },
   {
     accessorKey: "totalAmount",

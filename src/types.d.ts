@@ -88,6 +88,7 @@ interface PaymentConfig {
   tin: string;
   nin: string;
   name: string;
+  category: string;
   penalties: IssuedPenalty[];
   description: string;
   totalAmount: number;

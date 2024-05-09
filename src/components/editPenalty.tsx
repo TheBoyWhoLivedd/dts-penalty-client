@@ -38,6 +38,8 @@ interface PenaltyItemProps {
   formValues: FormValues;
   handleCustomInputChange: (variable: string, value: string) => void;
   penalties: PenaltyConfig[];
+  selectedCategory: string;
+  // setSelectedCategory: (category: string) => void;
 }
 
 const PenaltyItem: React.FC<PenaltyItemProps> = ({
@@ -48,6 +50,8 @@ const PenaltyItem: React.FC<PenaltyItemProps> = ({
   formValues,
   handleCustomInputChange,
   penalties,
+  selectedCategory,
+ 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -56,9 +60,9 @@ const PenaltyItem: React.FC<PenaltyItemProps> = ({
     "_id"
   > | null>(penalty);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    penalty.category
-  );
+  // const [selectedCategory, setSelectedCategory] = useState<string>(
+  //   penalty.category
+  // );
 
   const [amountInput, setAmountInput] = useState(
     penalty.finalAmount.toString()
@@ -68,12 +72,12 @@ const PenaltyItem: React.FC<PenaltyItemProps> = ({
   const [open, setOpen] = useState(false);
 
   // Extract unique categories
-  const categories = useMemo(() => {
-    const uniqueCategories = Array.from(
-      new Set(penalties.map((p) => p.category))
-    );
-    return uniqueCategories.sort();
-  }, [penalties]);
+  // const categories = useMemo(() => {
+  //   const uniqueCategories = Array.from(
+  //     new Set(penalties.map((p) => p.category))
+  //   );
+  //   return uniqueCategories.sort();
+  // }, [penalties]);
 
   // Filter penalties based on the selected category
   const filteredPenalties = useMemo(() => {
@@ -287,7 +291,7 @@ const PenaltyItem: React.FC<PenaltyItemProps> = ({
         </>
       ) : (
         <>
-          <div className="md:col-span-2">
+          {/* <div className="md:col-span-2">
             <div className="flex items-center w-full">
               <Label className="md:w-full">Choose Category</Label>
 
@@ -313,7 +317,7 @@ const PenaltyItem: React.FC<PenaltyItemProps> = ({
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </div> */}
           <div className="md:col-span-3 pt-2 md:pt-0">
             {isDesktop ? (
               <Popover open={open} onOpenChange={setOpen}>
